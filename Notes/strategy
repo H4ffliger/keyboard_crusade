@@ -1,0 +1,3 @@
+- Fixed amount of carriers and launchers are produced and will explore until they find x amount of wells.
+- carriers and launcher will explore, then return with the information back to the base to write then to the global array.
+- 
