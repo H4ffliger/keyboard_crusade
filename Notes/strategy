@@ -1,3 +1,14 @@
 - Fixed amount of carriers and launchers are produced and will explore until they find x amount of wells.
 - carriers and launcher will explore, then return with the information back to the base to write then to the global array.
-- 
+-
+
+
+
+- Carrier Strategy
+
+Carrier has either intern goal to get resource or to bring them back to HQ
+Goal to get resource is, when resource count is 0
+It tries to read the next well from the array, then goes to it and extracts resource.
+
+When it is full, it changes the goal to go to nearest HQ.
+Once there, it transfers all material to HQ
