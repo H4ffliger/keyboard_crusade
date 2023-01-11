@@ -1,1 +1,6 @@
-array_management
+- Locations (headquaters, wells, skyisland, information about the enemy)
+- 
+1000198911
+1000198922
+
+0-3:	HQ Towers (XXCord,YYCord,0-9) (0=Ad, 1=Mn, 2=Ex, 3=def
