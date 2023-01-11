@@ -15,11 +15,9 @@ public class Pathfinding {
 
     }
 
-    public static Direction returnToHomeBase (RobotController rc, int baseID) throws GameActionException{
+    public static Direction returnToHomeBase (RobotController rc, int tx, int ty) throws GameActionException{
 
         MapLocation currentLocation = new MapLocation(rc.getLocation().x, rc.getLocation().y);
-
-        int tx = 20, ty = 20;
 
         return currentLocation.directionTo(new MapLocation(tx, ty));
 
