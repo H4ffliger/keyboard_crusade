@@ -76,7 +76,7 @@ public class Carrier {
                         bestHQ = hq;
                     }
                 }
-                rc.setIndicatorString("HQ: " + Objects.requireNonNull(bestHQ));
+               /* rc.setIndicatorString("HQ: " + Objects.requireNonNull(bestHQ));
                 if (rc.canSenseRobotAtLocation(bestHQ)) {
                     rc.transferResource(bestHQ, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM));
                     rc.transferResource(bestHQ, ResourceType.MANA, rc.getResourceAmount(ResourceType.MANA));
@@ -86,7 +86,7 @@ public class Carrier {
                     if (rc.canMove(dir)) {
                         rc.move(dir);
                     }
-                }
+                }*/
             } else {
                 rc.setIndicatorString("HQ is null!");
             }
