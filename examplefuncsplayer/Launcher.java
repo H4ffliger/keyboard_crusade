@@ -2,6 +2,9 @@ package examplefuncsplayer;
 
 import battlecode.common.*;
 
+import java.nio.file.Path;
+
+import static examplefuncsplayer.Pathfinding.returnToHomeBase;
 import static examplefuncsplayer.RobotPlayer.directions;
 import static examplefuncsplayer.RobotPlayer.rng;
 
@@ -22,10 +25,20 @@ public class Launcher {
         }
 
         // Also try to move randomly.
+        /*
         Direction dir = directions[rng.nextInt(directions.length)];
         if (rc.canMove(dir)) {
             rc.move(dir);
         }
+         */
+
+        //Move with the pathfinding module
+        try {
+            rc.move(returnToHomeBase(rc, 0));
+        }
+        catch (Exception e){}
+
+
     }
 
 }

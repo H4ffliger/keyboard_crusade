@@ -4,3 +4,19 @@
 1000198922
 
 0-3:	HQ Towers (XXCord,YYCord,0-9) (0=Ad, 1=Mn, 2=Ex, 3=def
+Legend:
+X = X coordinates
+Y = Y coordinates
+S = Status
+
+
+00:XXYYS 	HQ friendly 01
+01:XXYYS 	HQ friendly 02
+02:XXYYS 	HQ friendly 03
+03:XXYYS	HQ friendly 04
+04:XXYYS	HQ enemy 01
+05:XXYYS	HQ enemy 02
+06:XXYYS	HQ enemy 03	
+07:XXYYS	HQ enemy 04
+08:
+09:
