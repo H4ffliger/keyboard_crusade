@@ -9,22 +9,26 @@ public class Pathfinding {
 
     //public void pathfinding(){}
 
-    public Direction pathfinding (RobotController rc) throws GameActionException{
+    /*public Direction pathfinding (RobotController rc) throws GameActionException{
 
         return Direction.EAST;
 
-    }
+    }*/
 
     public static void returnToHomeBase (RobotController rc, int tx, int ty) throws GameActionException{
-        goToPosition(rc, tx, ty);
+        goToPosition(rc,new MapLocation(tx,ty));
     }
 
     //ToDo: Do not move if on position
     public static void goToPosition (RobotController rc, int tx, int ty) throws GameActionException{
+        goToPosition(rc,new MapLocation(tx,ty));
+    }
+
+    public static void goToPosition (RobotController rc, MapLocation target) throws GameActionException{
 
         MapLocation currentLocation = new MapLocation(rc.getLocation().x, rc.getLocation().y);
 
-        Direction oTDirection = currentLocation.directionTo(new MapLocation(tx, ty));
+        Direction oTDirection = currentLocation.directionTo(target);
         Direction tDirection;
 
 
@@ -49,12 +53,14 @@ public class Pathfinding {
         }
     }
 
-    public static void calculatePath (RobotController rc, int tx, int ty) throws GameActionException{
+
+
+    /*public static void calculatePath (RobotController rc, int tx, int ty) throws GameActionException{
         MapLocation currentLocation = new MapLocation(rc.getLocation().x, rc.getLocation().y);
         //rc.canSenseLocation(0,0)
         //
 
-    }
+    }*/
 
 
 }
