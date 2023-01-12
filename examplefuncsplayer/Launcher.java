@@ -1,20 +1,18 @@
 package examplefuncsplayer;
 
 import battlecode.common.*;
-import scala.Int;
 
 import java.util.ArrayList;
 import java.util.Random;
 
 import static examplefuncsplayer.Pathfinding.*;
-import static examplefuncsplayer.RobotPlayer.rng;
 import static examplefuncsplayer.Strategy.explore;
 
 public class Launcher {
 
     //static int radioArray;
-    static ArrayList<MapLocation> hqLocations = new ArrayList<>();
-    static Integer exploreID;
+    private static ArrayList<MapLocation> hqLocations = new ArrayList<>();
+    private static Integer exploreID;
 
 
     static void runLauncher(RobotController rc) throws GameActionException {
@@ -39,7 +37,7 @@ public class Launcher {
             }
         }
 
-        /*
+
         // Try to attack someone
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
@@ -53,7 +51,7 @@ public class Launcher {
                 rc.attack(toAttack);
             }
         }
-*/
+
         //Move with the pathfinding module
         //ToDo: Temporary exploring function for testing
         try {
@@ -61,7 +59,8 @@ public class Launcher {
                 explore(rc, exploreID);
 
             } else {
-                returnToHomeBase(rc, hqLocations.get(0).x, hqLocations.get(0).y);
+                goToPosition(rc, rc.getMapHeight()/2,rc.getMapWidth()/2);
+                //returnToHomeBase(rc, hqLocations.get(0).x, hqLocations.get(0).y);
 
             }
         } catch (GameActionException e) {

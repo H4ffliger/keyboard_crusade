@@ -4,22 +4,20 @@ import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.WellInfo;
-import battlecode.world.Island;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-import static examplefuncsplayer.Launcher.exploreID;
 import static examplefuncsplayer.Pathfinding.goToPosition;
 
 public class Strategy {
 
-    static ArrayList<MapLocation> localWells = new ArrayList<>();
-    static ArrayList<MapLocation> localIslands = new ArrayList<>();
-    static int eOffsetX;
-    static int eOffsetY;
+    private static ArrayList<MapLocation> localWells = new ArrayList<>();
+    private static ArrayList<MapLocation> localIslands = new ArrayList<>();
+    private static int eOffsetX;
+    private static int eOffsetY;
     //Amount of rounds until the agent changes the explore offset again.
-    static int exploreSoftness = 13;
+    private static int exploreSoftness = 13;
 
     /*
 mapFieldID for example 9 or 16 for the amount of subfields of the map
@@ -31,11 +29,11 @@ mapFieldID for example 9 or 16 for the amount of subfields of the map
 
 
         //Random exploring
-        Random rnd = new Random(rc.getRoundNum() + exploreID);
+        Random rnd = new Random(rc.getRoundNum() + mapFieldID);
         if (rc.getRoundNum() % exploreSoftness == 0) {
             eOffsetX = rnd.nextInt(exploreSoftness * 2) - exploreSoftness;
             eOffsetY = rnd.nextInt(exploreSoftness * 2) - exploreSoftness;
-            System.out.println("Changed the eOffsetX: of " + exploreID + ": " + eOffsetX + " | Offset " + eOffsetY);
+            System.out.println("Changed the eOffsetX: of " + mapFieldID + ": " + eOffsetX + " | Offset " + eOffsetY);
         }
 
 
@@ -50,7 +48,7 @@ mapFieldID for example 9 or 16 for the amount of subfields of the map
 
     static void senseInformation(RobotController rc) throws GameActionException {
         WellInfo[] wells = rc.senseNearbyWells();
-        System.out.println("Sensing information--");
+        //System.out.println("Sensing information--");
         /*
         int[] islandsIndex = rc.senseNearbyIslands();
         MapLocation islandLocation;
