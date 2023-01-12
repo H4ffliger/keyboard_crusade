@@ -5,13 +5,17 @@ import battlecode.common.*;
 import static examplefuncsplayer.RobotPlayer.*;
 
 public class Headquarters {
-
+    static int producedCarrier = 0;
     static void runHeadquarters(RobotController rc) throws GameActionException {
         // Pick a direction to build in.
+        // producedCarrier produces the amount for every headquarter
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
-        if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
+        if ((rc.canBuildRobot(RobotType.CARRIER, newLoc)) && (producedCarrier < 4)) {
             rc.buildRobot(RobotType.CARRIER, newLoc);
+            producedCarrier++;
+
+
         }
         if (turnCount == 1) {
             writeLocationToArray(rc);
@@ -22,11 +26,15 @@ public class Headquarters {
             rc.buildAnchor(Anchor.STANDARD);
             //rc.setIndicatorString("Building anchor! " + rc.getAnchor());
         }
-        if (rng.nextBoolean()) {
+       if (rng.nextBoolean()) {
             // Let's try to build a carrier.
             //rc.setIndicatorString("Trying to build a carrier");
-            if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
+
+
+            if ((rc.canBuildRobot(RobotType.CARRIER, newLoc)) && ( producedCarrier < 4)){
                 rc.buildRobot(RobotType.CARRIER, newLoc);
+                producedCarrier++;
+
             }
         } else {
             // Let's try to build a launcher.
