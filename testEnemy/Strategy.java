@@ -49,7 +49,6 @@ mapFieldID for example 9 or 16 for the amount of subfields of the map
 
     static void senseInformation(RobotController rc) throws GameActionException {
         WellInfo[] wells = rc.senseNearbyWells();
-        System.out.println("Sensing information--");
         /*
         int[] islandsIndex = rc.senseNearbyIslands();
         MapLocation islandLocation;

@@ -1,8 +1,6 @@
 package testEnemy;
 
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -39,7 +37,7 @@ public class Launcher {
             }
         }
 
-        /*
+
         // Try to attack someone
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
@@ -53,7 +51,7 @@ public class Launcher {
                 rc.attack(toAttack);
             }
         }
-*/
+
         //Move with the pathfinding module
         //ToDo: Temporary exploring function for testing
         try {

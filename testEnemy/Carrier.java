@@ -51,7 +51,6 @@ public class Carrier {
             if (nearbyWells.length > 0) {
                 MapLocation nearestWell = nearbyWells[0].getMapLocation();
                 if (me.isAdjacentTo(nearestWell) || me.distanceSquaredTo(nearestWell) == 1) {
-                    System.out.println("Can act on Well: ");
                     if (rc.canCollectResource(nearestWell, -1)) {
                         rc.collectResource(nearestWell, -1);
                         rc.setIndicatorString("Collecting, now have, AD:" +
@@ -131,7 +130,6 @@ public class Carrier {
             }*/
             if (rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR) == 40) {
                 goal = 2;
-                System.out.println("Goal = 2");
             }
         } else if (goal == 2) {
             if (hqLocations != null) {
@@ -146,21 +144,16 @@ public class Carrier {
                 }
                 if (bestHQ != null) {
                     if (rc.canSenseRobotAtLocation(bestHQ) && me.isAdjacentTo(bestHQ)) {
-                        System.out.println("Can act on HQ: ");
-                        System.out.println("Can act on HQ: " + rc.canTransferResource(bestHQ, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM)));
                         if (rc.canTransferResource(bestHQ, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM))) {
-                            System.out.println("Transfer resource: " + rc.getResourceAmount(ResourceType.ADAMANTIUM));
                             rc.transferResource(bestHQ, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM));
 
                         }
                         if (rc.canTransferResource(bestHQ, ResourceType.MANA, rc.getResourceAmount(ResourceType.MANA))) {
                             rc.transferResource(bestHQ, ResourceType.MANA, rc.getResourceAmount(ResourceType.MANA));
-                            System.out.println("Transfer resource: " + rc.getResourceAmount(ResourceType.MANA));
-                        }
+                           }
                         if (rc.canTransferResource(bestHQ, ResourceType.ELIXIR, rc.getResourceAmount(ResourceType.ELIXIR))) {
                             rc.transferResource(bestHQ, ResourceType.ELIXIR, rc.getResourceAmount(ResourceType.ELIXIR));
-                            System.out.println("Transfer resource: " + rc.getResourceAmount(ResourceType.ELIXIR));
-                        }
+                            }
                     } else {
                         Direction dir = me.directionTo(bestHQ);
                         if (rc.canMove(dir)) {
@@ -177,7 +170,6 @@ public class Carrier {
             }
             if (rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR) == 0) {
                 goal = 1;
-                System.out.println("Goal = 1");
             }
         } else {
             // Also try to move randomly.
