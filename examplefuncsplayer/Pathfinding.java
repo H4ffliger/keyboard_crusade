@@ -49,5 +49,12 @@ public class Pathfinding {
         }
     }
 
+    public static void calculatePath (RobotController rc, int tx, int ty) throws GameActionException{
+        MapLocation currentLocation = new MapLocation(rc.getLocation().x, rc.getLocation().y);
+        //rc.canSenseLocation(0,0)
+        //
+
+    }
+
 
 }

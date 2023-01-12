@@ -14,11 +14,8 @@ import static examplefuncsplayer.Pathfinding.goToPosition;
 
 public class Strategy {
 
-
     static ArrayList<MapLocation> localWells = new ArrayList<>();
     static ArrayList<MapLocation> localIslands = new ArrayList<>();
-
-
     static int eOffsetX;
     static int eOffsetY;
     //Amount of rounds until the agent changes the explore offset again.
@@ -46,35 +43,28 @@ mapFieldID for example 9 or 16 for the amount of subfields of the map
         int tY = mapFieldID % 3 * mapH / 3 + mapSize + eOffsetY;
         //System.out.println("mapFieldID: " + Integer.toString(mapFieldID) + " | tX: " + Integer.toString(tX) + " | tY" + Integer.toString(tY));
 
-        //SenseInformation
-
         senseInformation(rc);
-
         goToPosition(rc, tX, tY);
-
-
 
     }
 
     static void senseInformation(RobotController rc) throws GameActionException {
         WellInfo[] wells = rc.senseNearbyWells();
         System.out.println("Sensing information--");
+        /*
         int[] islandsIndex = rc.senseNearbyIslands();
         MapLocation islandLocation;
         for (int island:islandsIndex) {
             try {
-                islandLocation = rc.senseNearbyIslandLocations(island);
+                islandLocation = rc.senseNearbyIslandLocations(islandsIndex);
                 localIslands.contains(islands)
             } catch (GameActionException e) {
                 e.printStackTrace();
 
                 System.out.println("Sensing information++");
             }
-
-        }
-
-
-
+            }
+         */
 
         for (int x = wells.length - 1; x >= 0; x--) {
             if (!localWells.contains(wells[x].getMapLocation())) {
