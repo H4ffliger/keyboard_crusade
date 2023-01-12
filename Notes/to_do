@@ -1,0 +1,10 @@
+Huffligers:
+- Better cooldown management
+- Reaction on attack
+- Write explored information back to HQ
+- Atack strategy to kill enemy supply lines
+- HQ bug, where all go to the same hq
+- Communication with HQ
+- Pathfinging improvements:
+	- Go around opjects with the closest line
+	- Better movement guide when getting stuck

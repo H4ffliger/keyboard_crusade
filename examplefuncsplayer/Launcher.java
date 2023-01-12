@@ -20,7 +20,7 @@ public class Launcher {
     static void runLauncher(RobotController rc) throws GameActionException {
 
         //Creation process
-        if(exploreID == null){
+        if (exploreID == null) {
             //ToDo: Change and coordinate with HQ shared array
             exploreID = new Random().nextInt(9);
             System.out.println("Rnd: " + Integer.toString(exploreID));
@@ -28,14 +28,18 @@ public class Launcher {
 
         //Set the local hq Positions
         for (int i = 0; i < 4; i++) {
-            String hqLocationString = Integer.toString(rc.readSharedArray(i));
-            if(!hqLocationString.equals("0")) {
+            String hqLocationString = null;
+
+            hqLocationString = Integer.toString(rc.readSharedArray(i));
+
+            if (!hqLocationString.equals("0")) {
                 int dx = Integer.parseInt(hqLocationString.substring(1, 3));
-                int dy =  Integer.parseInt(hqLocationString.substring(3, 5));
+                int dy = Integer.parseInt(hqLocationString.substring(3, 5));
                 hqLocations.add(new MapLocation(dx, dy));
             }
         }
 
+        /*
         // Try to attack someone
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
@@ -49,18 +53,20 @@ public class Launcher {
                 rc.attack(toAttack);
             }
         }
-
+*/
         //Move with the pathfinding module
         //ToDo: Temporary exploring function for testing
         try {
             if (rc.getRoundNum() < 200) {
                 explore(rc, exploreID);
+
             } else {
-                rc.move(returnToHomeBase(rc, hqLocations.get(0).x, hqLocations.get(0).y));
+                returnToHomeBase(rc, hqLocations.get(0).x, hqLocations.get(0).y);
+
             }
-        }
-        catch (Exception e){
-            rc.setIndicatorString("Error: " + e.toString());
+        } catch (GameActionException e) {
+            System.out.println(rc.getType() + " Exception");
+            e.printStackTrace();
         }
     }
 }

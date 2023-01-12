@@ -15,12 +15,12 @@ public class Pathfinding {
 
     }
 
-    public static Direction returnToHomeBase (RobotController rc, int tx, int ty) throws GameActionException{
-        return goToPosition(rc, tx, ty);
+    public static void returnToHomeBase (RobotController rc, int tx, int ty) throws GameActionException{
+        goToPosition(rc, tx, ty);
     }
 
     //ToDo: Do not move if on position
-    public static Direction goToPosition (RobotController rc, int tx, int ty) throws GameActionException{
+    public static void goToPosition (RobotController rc, int tx, int ty) throws GameActionException{
 
         MapLocation currentLocation = new MapLocation(rc.getLocation().x, rc.getLocation().y);
 
@@ -29,24 +29,24 @@ public class Pathfinding {
 
 
         if(rc.canMove(oTDirection)) {
-            return oTDirection;
+            rc.move(oTDirection);
         }
         else if (rc.canMove(oTDirection.rotateLeft())) {
-            return oTDirection.rotateLeft();
+            rc.move(oTDirection.rotateLeft());
         }
         else if (rc.canMove(oTDirection.rotateRight())) {
-            return oTDirection.rotateLeft();
+            rc.move(oTDirection.rotateRight());
         }
-        tDirection = oTDirection.rotateRight();
-        //First concept for not getting stuckd directly
-        for(int z = 0; z < 3; z++){
-            tDirection = tDirection.rotateRight();
-            if(rc.canMove(tDirection)){
-                return tDirection;
+        else {
+            tDirection = oTDirection.rotateRight();
+            //First concept for not getting stuckd directly
+            for (int z = 0; z < 3; z++) {
+                tDirection = tDirection.rotateRight();
+                if (rc.canMove(tDirection)) {
+                    rc.move(tDirection);
+                }
             }
         }
-
-        return null;
     }
 
 
