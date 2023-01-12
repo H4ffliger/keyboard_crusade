@@ -19,6 +19,7 @@ public class Pathfinding {
         return goToPosition(rc, tx, ty);
     }
 
+    //ToDo: Do not move if on position
     public static Direction goToPosition (RobotController rc, int tx, int ty) throws GameActionException{
 
         MapLocation currentLocation = new MapLocation(rc.getLocation().x, rc.getLocation().y);
