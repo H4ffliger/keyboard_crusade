@@ -16,15 +16,36 @@ public class Pathfinding {
     }
 
     public static Direction returnToHomeBase (RobotController rc, int tx, int ty) throws GameActionException{
+        return goToPosition(rc, tx, ty);
+    }
+
+    public static Direction goToPosition (RobotController rc, int tx, int ty) throws GameActionException{
 
         MapLocation currentLocation = new MapLocation(rc.getLocation().x, rc.getLocation().y);
 
-        return currentLocation.directionTo(new MapLocation(tx, ty));
-
-        //Calculate the direction in which the agent should move
-        //rc.getLocation(baseID);
+        Direction oTDirection = currentLocation.directionTo(new MapLocation(tx, ty));
+        Direction tDirection;
 
 
+        if(rc.canMove(oTDirection)) {
+            return oTDirection;
+        }
+        else if (rc.canMove(oTDirection.rotateLeft())) {
+            return oTDirection.rotateLeft();
+        }
+        else if (rc.canMove(oTDirection.rotateRight())) {
+            return oTDirection.rotateLeft();
+        }
+        tDirection = oTDirection.rotateRight();
+        //First concept for not getting stuckd directly
+        for(int z = 0; z < 3; z++){
+            tDirection = tDirection.rotateRight();
+            if(rc.canMove(tDirection)){
+                return tDirection;
+            }
+        }
+
+        return null;
     }
 
 

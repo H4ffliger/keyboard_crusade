@@ -13,7 +13,7 @@ public class Launcher {
     static void runLauncher(RobotController rc) throws GameActionException {
 
 
-        //radioArray = rc.readSharedArray(0);
+        explore();
 
         //Set the local hq Positions
         for (int i = 0; i < 4; i++) {
@@ -23,7 +23,6 @@ public class Launcher {
                 int dy =  Integer.parseInt(hqLocationString.substring(3, 5));
                 hqLocations.add(new MapLocation(dx, dy));
             }
-            //rc.setIndicatorString("Set HQ to " + hqLocationString);
         }
 
 
@@ -42,13 +41,6 @@ public class Launcher {
             }
         }
 
-        // Also try to move randomly.
-        /*
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) {
-            rc.move(dir);
-        }
-         */
 
         //Move with the pathfinding module
         try {
@@ -56,6 +48,24 @@ public class Launcher {
         }
         catch (Exception ignore){}
 
+
+    }
+
+    /*
+    mapFieldID for example 9 or 16 for the amount of subfields of the map
+     */
+    static void explore(RobotController rc, int mapFieldID){
+        int mapH = rc.getMapHeight();
+        int mapW = rc.getMapWidth();
+
+        int mapSize = mapH /20;
+        int tX, tY;
+
+        for (int z = 9-1; z >= 0; z--){
+            tX = z % mapSize;
+            tY = z / mapSize;
+            System.out.println("Explore map Size: " + Integer.toString(mapSize));
+        }
 
     }
 
