@@ -29,12 +29,12 @@ mapFieldID for example 9 or 16 for the amount of subfields of the map
 
 
         //Random exploring
-        System.out.println("Round:" + rc.getRoundNum());
+        //System.out.println("Round:" + rc.getRoundNum());
         Random rnd = new Random(rc.getRoundNum() + mapFieldID);
         if (rc.getRoundNum() % exploreSoftness == 0) {
             eOffsetX = rnd.nextInt(exploreSoftness * 2) - exploreSoftness;
             eOffsetY = rnd.nextInt(exploreSoftness * 2) - exploreSoftness;
-            System.out.println("Changed the eOffsetX: of " + mapFieldID + ": " + eOffsetX + " | Offset " + eOffsetY);
+            //System.out.println("Changed the eOffsetX: of " + mapFieldID + ": " + eOffsetX + " | Offset " + eOffsetY);
         }
 
 

@@ -21,34 +21,32 @@ public class Launcher {
         if (exploreID == null) {
             //ToDo: Change and coordinate with HQ shared array
             exploreID = new Random().nextInt(9);
-            System.out.println("Rnd: " + exploreID);
+            //System.out.println("Rnd: " + exploreID);
         }
-
-        //Set the local hq Positions
-        for (int i = 0; i < 4; i++) {
-            String hqLocationString = null;
-
-            hqLocationString = Integer.toString(rc.readSharedArray(i));
-
-            if (!hqLocationString.equals("0")) {
-                int dx = Integer.parseInt(hqLocationString.substring(1, 3));
-                int dy = Integer.parseInt(hqLocationString.substring(3, 5));
-                hqLocations.add(new MapLocation(dx, dy));
+        if(hqLocations.size()==0) {
+            //Set the local hq Positions
+            for (int i = 0; i < 4; i++) {
+                String hqLocationString = null;
+                hqLocationString = Integer.toString(rc.readSharedArray(i));
+                if (!hqLocationString.equals("0")) {
+                    int dx = Integer.parseInt(hqLocationString.substring(1, 3));
+                    int dy = Integer.parseInt(hqLocationString.substring(3, 5));
+                    hqLocations.add(new MapLocation(dx, dy));
+                }
             }
         }
-
 
         // Try to attack someone
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
         if (enemies.length > 0) {
-            // MapLocation toAttack = enemies[0].location;
-            MapLocation toAttack = rc.getLocation().add(Direction.EAST);
-
+            MapLocation toAttack = enemies[0].location;
             if (rc.canAttack(toAttack)) {
                 rc.setIndicatorString("Attacking");
                 rc.attack(toAttack);
+            } else {
+                goToPosition(rc,toAttack);
             }
         }
 
