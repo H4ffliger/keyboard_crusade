@@ -8,46 +8,32 @@ public class Headquarters {
     //TODO: Do limits dynamically
     //TODO: Make better strategy
     private static int producedCarrier = 0;
-    private static int carrierLimit = 10;
+    private static int carrierLimit = 20;
 
     private static int producedLauncher = 0;
     private static int launcherLimit = 1117;
 
     static void runHeadquarters(RobotController rc) throws GameActionException {
-        // Pick a direction to build in.
-        // producedCarrier produces the amount for every headquarter
-        Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation newLoc = rc.getLocation().add(dir);
-        if ((rc.canBuildRobot(RobotType.CARRIER, newLoc)) && (producedCarrier < carrierLimit)) {
-            rc.buildRobot(RobotType.CARRIER, newLoc);
-            producedCarrier++;
-
-
-        }
         if (turnCount == 1) {
             writeLocationToArray(rc);
             usageOfFirstDistance(rc);
         }
-        if (rc.canBuildAnchor(Anchor.STANDARD) && rc.getRoundNum()>50) {
+        if (rc.canBuildAnchor(Anchor.STANDARD) && rc.getRoundNum() > 50) {
             // If we can build an anchor do it!
             rc.buildAnchor(Anchor.STANDARD);
             //rc.setIndicatorString("Building anchor! " + rc.getAnchor());
         }
-        if (rng.nextBoolean()) {
-            // Let's try to build a carrier.
-            //rc.setIndicatorString("Trying to build a carrier");
 
-
-            if ((rc.canBuildRobot(RobotType.CARRIER, newLoc)) && (producedCarrier < carrierLimit)) {
-                rc.buildRobot(RobotType.CARRIER, newLoc);
+        // Let's try to build a carrier.
+        //rc.setIndicatorString("Trying to build a carrier");
+        for (Direction dirLoop : Direction.allDirections()) {
+            MapLocation buildPlace = rc.getLocation().add(dirLoop);
+            if ((rc.canBuildRobot(RobotType.CARRIER, buildPlace)) && (producedCarrier < carrierLimit)) {
+                rc.buildRobot(RobotType.CARRIER, buildPlace);
                 producedCarrier++;
 
-            }
-        } else {
-            // Let's try to build a launcher.
-            //rc.setIndicatorString("Trying to build a launcher");
-            if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)&& (producedLauncher < launcherLimit)) {
-                rc.buildRobot(RobotType.LAUNCHER, newLoc);
+            } else if (rc.canBuildRobot(RobotType.LAUNCHER, buildPlace) && (producedLauncher < launcherLimit)) {
+                rc.buildRobot(RobotType.LAUNCHER, buildPlace);
                 launcherLimit++;
             }
         }
