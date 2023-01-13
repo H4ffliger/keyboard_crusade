@@ -1,6 +1,7 @@
 package examplefuncsplayer;
 
 import battlecode.common.*;
+import com.sun.codemodel.internal.JCase;
 
 import java.util.*;
 
@@ -30,8 +31,9 @@ public class Carrier {
                 rc.takeAnchor(homeHQ, Anchor.STANDARD);
                 goal = 3;
             } else {
-                goal = 1;
+                goal = rng.nextInt(2) + 4;
             }
+
         } else if (goal == 1) {
             rc.setIndicatorString("I go mining");
             goMining(rc, me);
@@ -45,6 +47,18 @@ public class Carrier {
         } else if (goal == 3) {
             rc.setIndicatorString("Me place Anchor");
             placeAnchor(rc, me);
+        } else if (goal == 4) {
+            rc.setIndicatorString("Me mine Ad");
+            goMining(rc, me, ResourceType.ADAMANTIUM);
+            if (rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR) == 40) {
+                goal = 2;
+            }
+        } else if (goal == 5) {
+            rc.setIndicatorString("Me mine Mn");
+            goMining(rc, me, ResourceType.MANA);
+            if (rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR) == 40) {
+                goal = 2;
+            }
         } else {
             // Also try to move randomly.
             Direction dir = directions[rng.nextInt(directions.length)];
@@ -67,7 +81,6 @@ public class Carrier {
 
 
     }
-
 
     //unused
     private static void placeAnchor(RobotController rc, MapLocation me) throws GameActionException {
@@ -106,7 +119,6 @@ public class Carrier {
                 if (exploreID == null) {
                     //ToDo: Change and coordinate with HQ shared array
                     exploreID = new Random().nextInt(9);
-                    System.out.println("Rnd: " + exploreID);
                 } else {
                     explore(rc, exploreID);
                 }
@@ -154,19 +166,71 @@ public class Carrier {
 
     }
 
+    private static void goMining(RobotController rc, MapLocation me, MapLocation target) throws GameActionException {
+        if (me.isAdjacentTo(target) || me.distanceSquaredTo(target) == 1) {
+            if (rc.canCollectResource(target, -1)) {
+                rc.collectResource(target, -1);
+                rc.setIndicatorString("Collecting, now have, AD:" + rc.getResourceAmount(ResourceType.ADAMANTIUM) + " MN: " + rc.getResourceAmount(ResourceType.MANA) + " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
+            }
+        } else {
+            goToPosition(rc, target);
+            rc.setIndicatorString("Move to nearest Well");
+        }
+    }
+
+    private static void goMining(RobotController rc, MapLocation me, ResourceType rt) throws GameActionException {
+        ArrayList<MapLocation> selectWells = null;
+        switch (rt) {
+            case NO_RESOURCE:
+                break;
+            case ADAMANTIUM:
+                selectWells = adWells;
+                break;
+            case MANA:
+                selectWells = manaWells;
+                break;
+            case ELIXIR:
+                break;
+        }
+        if (selectWells != null && selectWells.size() > 0) {
+            rc.setIndicatorString("Did find a well");
+            int minimalDistance = 100000;
+            MapLocation nearestWell = null;
+            for (MapLocation oneWell : selectWells) {
+                int actualDistance = me.distanceSquaredTo(oneWell);
+                if (actualDistance < minimalDistance) {
+                    minimalDistance = actualDistance;
+                    nearestWell = oneWell;
+                }
+            }
+            if (nearestWell != null) {
+                rc.setIndicatorString("Going to mine");
+                goMining(rc, me, nearestWell);
+            } else {
+                System.out.println("NearestWell is null");
+            }
+
+        } else {
+            rc.setIndicatorString("Didn't find Well of type: " + rt);
+            goal = 1;
+        }
+    }
+
     private static void goMining(RobotController rc, MapLocation me) throws GameActionException {
         WellInfo[] nearbyWells = rc.senseNearbyWells();
+        for (WellInfo well : nearbyWells) {
+            MapLocation wellLoc = well.getMapLocation();
+            if (!adWells.contains(wellLoc) || !manaWells.contains(wellLoc)) {
+                if (well.getResourceType() == ResourceType.ADAMANTIUM) {
+                    adWells.add(wellLoc);
+                } else if (well.getResourceType() == ResourceType.MANA) {
+                    manaWells.add(wellLoc);
+                }
+            }
+        }
         if (nearbyWells.length > 0) {
             MapLocation nearestWell = nearbyWells[0].getMapLocation();
-            if (me.isAdjacentTo(nearestWell) || me.distanceSquaredTo(nearestWell) == 1) {
-                if (rc.canCollectResource(nearestWell, -1)) {
-                    rc.collectResource(nearestWell, -1);
-                    rc.setIndicatorString("Collecting, now have, AD:" + rc.getResourceAmount(ResourceType.ADAMANTIUM) + " MN: " + rc.getResourceAmount(ResourceType.MANA) + " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
-                }
-            } else {
-                goToPosition(rc, nearestWell);
-                rc.setIndicatorString("Move to nearest Well");
-            }
+            goMining(rc, me, nearestWell);
 
         } else if (adWells.size() != 0 || manaWells.size() != 0) {
             int minimalDistance = 100000;
@@ -186,15 +250,7 @@ public class Carrier {
                 }
             }
             if (nearestWell != null) {
-                if (me.isAdjacentTo(nearestWell) || me.distanceSquaredTo(nearestWell) == 1) {
-                    if (rc.canCollectResource(nearestWell, -1)) {
-                        rc.collectResource(nearestWell, -1);
-                        rc.setIndicatorString("Collecting, now have, AD:" + rc.getResourceAmount(ResourceType.ADAMANTIUM) + " MN: " + rc.getResourceAmount(ResourceType.MANA) + " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
-                    }
-                } else {
-                    goToPosition(rc, nearestWell);
-                    rc.setIndicatorString("Move to nearest Well");
-                }
+                goMining(rc, me, nearestWell);
             } else {
                 System.out.println("NearestWell is null");
             }
