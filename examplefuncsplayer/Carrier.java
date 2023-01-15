@@ -1,10 +1,10 @@
 package examplefuncsplayer;
 
 import battlecode.common.*;
-import com.sun.codemodel.internal.JCase;
 
 import java.util.*;
 
+import static examplefuncsplayer.Communication.getHeadquarters;
 import static examplefuncsplayer.Pathfinding.goToPosition;
 import static examplefuncsplayer.RobotPlayer.*;
 import static examplefuncsplayer.Strategy.explore;
@@ -12,17 +12,16 @@ import static examplefuncsplayer.Strategy.explore;
 public class Carrier {
 
     private static ArrayList<MapLocation> hqLocations = new ArrayList<>();
-    private static MapLocation homeHQ = new MapLocation(1, 1);
+    private static MapLocation homeHQ = null;
 
     private static ArrayList<MapLocation> adWells = new ArrayList<>();
     private static ArrayList<MapLocation> manaWells = new ArrayList<>();
-    private static int goal = 1, globalIndex = 0;
+    private static int goal = 1;
 
     //TODO: change strategy to place anchor
     private static Integer exploreID;
 
     static void runCarrier(RobotController rc) throws GameActionException {
-        getImportantLocations(rc);
         if (turnCount == 1) initialisation(rc);
         MapLocation me = rc.getLocation();
         if (goal == 0) {
@@ -38,7 +37,7 @@ public class Carrier {
             rc.setIndicatorString("I go mining");
             goMining(rc, me);
 
-            if (rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR) == 40) {
+            if (getTotalResources(rc) == 40) {
                 goal = 2;
             }
         } else if (goal == 2) {
@@ -50,13 +49,13 @@ public class Carrier {
         } else if (goal == 4) {
             rc.setIndicatorString("Me mine Ad");
             goMining(rc, me, ResourceType.ADAMANTIUM);
-            if (rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR) == 40) {
+            if (getTotalResources(rc) == 40) {
                 goal = 2;
             }
         } else if (goal == 5) {
             rc.setIndicatorString("Me mine Mn");
             goMining(rc, me, ResourceType.MANA);
-            if (rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR) == 40) {
+            if (getTotalResources(rc) == 40) {
                 goal = 2;
             }
         } else {
@@ -68,18 +67,6 @@ public class Carrier {
             System.out.println("Goal = something else");
         }
 
-
-        // Occasionally try out the carriers attack
-        /*if (rng.nextInt(20) == 1) {
-            RobotInfo[] enemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-            if (enemyRobots.length > 0) {
-                if (rc.canAttack(enemyRobots[0].location)) {
-                    rc.attack(enemyRobots[0].location);
-                }
-            }
-        }*/
-
-
     }
 
     //unused
@@ -89,7 +76,7 @@ public class Carrier {
             int[] islands = rc.senseNearbyIslands();
             Set<MapLocation> islandLocs = new HashSet<>();
             for (int id : islands) {
-                if (!rc.senseTeamOccupyingIsland(id).isPlayer()) {
+                if (rc.senseTeamOccupyingIsland(id)!=rc.getTeam()) {
                     MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
                     islandLocs.addAll(Arrays.asList(thisIslandLocs));
                 }
@@ -128,15 +115,6 @@ public class Carrier {
 
     private static void returnToHQ(RobotController rc, MapLocation me) throws GameActionException {
         if (hqLocations != null) {
-            /*int minimalDistance = 100000;
-            MapLocation bestHQ = null;
-            for (MapLocation hq : hqLocations) {
-                int actualDistance = me.distanceSquaredTo(hq);
-                if (actualDistance < minimalDistance) {
-                    minimalDistance = actualDistance;
-                    bestHQ = hq;
-                }
-            }*/
             if (homeHQ != null) {
                 if (rc.canSenseRobotAtLocation(homeHQ) && me.isAdjacentTo(homeHQ)) {
                     if (rc.canTransferResource(homeHQ, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM))) {
@@ -157,6 +135,16 @@ public class Carrier {
                     rc.setIndicatorString("Move to HQ");
                 }
             } else {
+                int minimalDistance = 100000;
+                MapLocation bestHQ = null;
+                for (MapLocation hq : hqLocations) {
+                    int actualDistance = me.distanceSquaredTo(hq);
+                    if (actualDistance < minimalDistance) {
+                        minimalDistance = actualDistance;
+                        bestHQ = hq;
+                    }
+                }
+                goToPosition(rc,bestHQ);
                 System.out.println("HomeHQ is null");
             }
 
@@ -168,10 +156,7 @@ public class Carrier {
 
     private static void goMining(RobotController rc, MapLocation me, MapLocation target) throws GameActionException {
         if (me.isAdjacentTo(target) || me.distanceSquaredTo(target) == 1) {
-            if (rc.canCollectResource(target, -1)) {
-                rc.collectResource(target, -1);
-                rc.setIndicatorString("Collecting, now have, AD:" + rc.getResourceAmount(ResourceType.ADAMANTIUM) + " MN: " + rc.getResourceAmount(ResourceType.MANA) + " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
-            }
+            if (rc.canCollectResource(target, -1)) rc.collectResource(target, -1);
         } else {
             goToPosition(rc, target);
             rc.setIndicatorString("Move to nearest Well");
@@ -267,7 +252,15 @@ public class Carrier {
     }
 
     private static void getImportantLocations(RobotController rc) throws GameActionException {
-        while (rc.readSharedArray(globalIndex) != 0) {
+        hqLocations=getHeadquarters(rc);
+        RobotInfo[] robots = rc.senseNearbyRobots();
+        for(RobotInfo robot : robots) {
+            if(robot.getTeam() == rc.getTeam() && robot.getType() == RobotType.HEADQUARTERS) {
+                homeHQ = robot.getLocation();
+                break;
+            }
+        }
+        /*while (rc.readSharedArray(globalIndex) != 0) {
             int information = rc.readSharedArray(globalIndex);
             String informationString = Integer.toString(information);
             String firstBitString = informationString.substring(0, 1);
@@ -285,18 +278,17 @@ public class Carrier {
             }
             //System.out.println("Set HQ to " + hqLocationString);
             globalIndex++;
-        }
+        }*/
     }
 
-    private static void initialisation(RobotController rc) {
-        int minimalDistance = 10;
-        for (MapLocation hq : hqLocations) {
-            int actualDistance = rc.getLocation().distanceSquaredTo(hq);
-            if (actualDistance < minimalDistance) {
-                homeHQ = hq;
-                System.out.println("Found Home HQ");
-                break;
-            }
-        }
+    private static void initialisation(RobotController rc) throws GameActionException {
+        getImportantLocations(rc);
+    }
+
+    static int getTotalResources(RobotController rc) {
+        return rc.getResourceAmount(ResourceType.ADAMANTIUM)
+                + rc.getResourceAmount(ResourceType.MANA)
+                + rc.getResourceAmount(ResourceType.ELIXIR);
     }
 }
+

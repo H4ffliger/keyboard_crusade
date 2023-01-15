@@ -2,6 +2,7 @@ package examplefuncsplayer;
 
 import battlecode.common.*;
 
+import static examplefuncsplayer.Communication.addHeadquarter;
 import static examplefuncsplayer.RobotPlayer.*;
 
 public class Headquarters {
@@ -40,31 +41,8 @@ public class Headquarters {
     }
 
     private static void writeLocationToArray(RobotController rc) throws GameActionException {
-        int index = 0;
-        while (rc.readSharedArray(index) != 0 || index == 63) {
-            //System.out.println("Read to Array: " + index);
-            index++;
-        }
-        if (rc.readSharedArray(index) == 0) {
-            int x = rc.getLocation().x;
-            int y = rc.getLocation().y;
-            String xString, yString;
-            if (x < 10) {
-                xString = "0" + x;
-            } else {
-                xString = Integer.toString(x);
-            }
-            if (y < 10) {
-                yString = "0" + y;
-            } else {
-                yString = Integer.toString(y);
-            }
-            String ownInformationIntegerString = 1 + xString + yString;
-            int ownInformation = Integer.parseInt(ownInformationIntegerString);
-            rc.writeSharedArray(index, ownInformation);
-            rc.setIndicatorString(index + ". HQ is here: " + ownInformationIntegerString);
-        }
-
+        addHeadquarter(rc);
+        System.out.println("Write my location");
     }
 
     private static void usageOfFirstDistance(RobotController rc) throws GameActionException {
