@@ -56,14 +56,14 @@ public class Launcher {
         //Move with the pathfinding module
         //ToDo: Temporary exploring function for testing
         try {
-            if (rc.getRoundNum() < 200) {
+           /* if (rc.getRoundNum() < 200) {
                 explore(rc, exploreID);
 
-            } else {
+            } else {*/
                 goToPosition(rc, rc.getMapHeight()/2,rc.getMapWidth()/2);
                 //returnToHomeBase(rc, hqLocations.get(0).x, hqLocations.get(0).y);
 
-            }
+            //}
         } catch (GameActionException e) {
             System.out.println(rc.getType() + " Exception");
             e.printStackTrace();
