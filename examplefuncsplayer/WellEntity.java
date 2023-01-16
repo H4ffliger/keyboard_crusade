@@ -9,6 +9,8 @@ public class WellEntity extends ArrayEntity {
 
     public WellEntity(int index, MapLocation ownLocation) {
         super(index, ownLocation);
+        wellStatus = 0;
+        defenseStatus = 0;
     }
 
     public int getWellStatus() {

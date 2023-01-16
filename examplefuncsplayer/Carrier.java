@@ -87,13 +87,13 @@ public class Carrier {
             if (!manaWells.contains(wellInfo.getMapLocation())) {
                 manaWells.add(wellInfo.getMapLocation());
                 WellEntity addedEntity = new WellEntity(-1, wellInfo.getMapLocation());
-                addedEntity.setWellStatus(0);
+                addedEntity.setWellStatus(1);
                 mnWellEntities.add(addedEntity);
                 addWell(rc, addedEntity);
             } else if (!adWells.contains(wellInfo.getMapLocation())) {
                 adWells.add(wellInfo.getMapLocation());
                 WellEntity addedEntity = new WellEntity(-1, wellInfo.getMapLocation());
-                addedEntity.setWellStatus(1);
+                addedEntity.setWellStatus(2);
                 adWellEntities.add(addedEntity);
                 addWell(rc, addedEntity);
             }
