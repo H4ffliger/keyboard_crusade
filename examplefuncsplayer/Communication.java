@@ -169,10 +169,10 @@ class Communication {
     static void addWell(RobotController rc, WellEntity well) throws GameActionException {
         int status = -1;
         int index = STARTING_WELL_IDX;
-        for (WellEntity wellEntity:wellEntities) {
-            if (wellEntity!=null) {
+        for (WellEntity wellEntity : wellEntities) {
+            if (wellEntity != null) {
                 if (wellEntity.equals(well)) {
-                    status=1;
+                    status = 1;
                     wellEntity.setIndex(well.getIndex());
                     break;
                 } else {
@@ -182,15 +182,24 @@ class Communication {
                 break;
             }
         }
-        int writeToSharedArray = locationToInt(rc,well.getOwnLocation()) << WELL_STATUS_BITS + WELL_DEFENSE_BITS;
+        int writeToSharedArray = locationToInt(rc, well.getOwnLocation()) << WELL_STATUS_BITS + WELL_DEFENSE_BITS;
         writeToSharedArray += well.getWellStatus() << WELL_DEFENSE_BITS;
         writeToSharedArray += well.getDefenseStatus();
         System.out.println("Added Well with Location:" + well.getOwnLocation() + " and status: " + well.getWellStatus() + " and defense: " + well.getDefenseStatus());
-        if (status!=1) {
-            messagesQueue.add(new Message(index,writeToSharedArray,turnCount));
+        if (status != 1) {
+            messagesQueue.add(new Message(index, writeToSharedArray, turnCount));
         } else {
-            messagesQueue.add(new Message(well.getIndex(),writeToSharedArray,turnCount));
+            messagesQueue.add(new Message(well.getIndex(), writeToSharedArray, turnCount));
         }
+        tryWriteMessages(rc);
+    }
+
+    static void updateWell(RobotController rc, WellEntity well) throws GameActionException {
+        int writeToSharedArray = locationToInt(rc, well.getOwnLocation()) << WELL_STATUS_BITS + WELL_DEFENSE_BITS;
+        writeToSharedArray += well.getWellStatus() << WELL_DEFENSE_BITS;
+        writeToSharedArray += well.getDefenseStatus();
+        System.out.println("Added Well with Location:" + well.getOwnLocation() + " and status: " + well.getWellStatus() + " and defense: " + well.getDefenseStatus() + "on index: " + well.getIndex());
+        messagesQueue.add(new Message(well.getIndex(), writeToSharedArray, turnCount));
         tryWriteMessages(rc);
     }
 
@@ -198,11 +207,14 @@ class Communication {
         for (int i = STARTING_WELL_IDX; i < MAX_WELLS_IN_ARRAY + STARTING_WELL_IDX; i++) {
             if (rc.readSharedArray(i) != 0) {
                 int readFromSharedArray = rc.readSharedArray(i);
-                int location =  readFromSharedArray >> WELL_STATUS_BITS + WELL_DEFENSE_BITS;
+                int defenseStatus = readFromSharedArray+0b11;
+                int location = readFromSharedArray >> WELL_STATUS_BITS + WELL_DEFENSE_BITS;
+                int status = readFromSharedArray >> WELL_DEFENSE_BITS;
+                int statusBited = status + 0b11;
                 WellEntity newEntity = new WellEntity(i, intToLocation(rc, location));
-                newEntity.setDefenseStatus(readFromSharedArray+0b11);
-                int status =  readFromSharedArray>> WELL_DEFENSE_BITS;
-                newEntity.setWellStatus(status+0b11);
+                newEntity.setDefenseStatus(defenseStatus);
+                newEntity.setWellStatus(statusBited);
+                //System.out.println("Read Well with Location:" + newEntity.getOwnLocation() + " and status: " + newEntity.getWellStatus() + " and defense: " + newEntity.getDefenseStatus() + "on index: " + newEntity.getIndex());
                 wellEntities[i - STARTING_WELL_IDX] = (newEntity);
             } else break;
         }

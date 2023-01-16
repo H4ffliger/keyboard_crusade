@@ -43,19 +43,19 @@ public class Headquarters {
         int recurseManagement = rc.getResourceAmount(ResourceType.ADAMANTIUM) - rc.getResourceAmount(ResourceType.MANA);
         if (recurseManagement > recurseManagementSinus){
             status = 1;
-            System.out.println("recurseManagement overflow ADAMANTIUM ");
+            //System.out.println("recurseManagement overflow ADAMANTIUM ");
         }
         if (recurseManagement < -recurseManagementSinus){
             status = 0;
-            System.out.println("recurseManagement overflow MANA ");
+            //System.out.println("recurseManagement overflow MANA ");
         }
-        else {System.out.println("recurseManagement EQUILAIZED!!");}
+        else {/*System.out.println("recurseManagement EQUILAIZED!!");*/}
 
     }
 
     private static void writeLocationToArray(RobotController rc) throws GameActionException {
         addHeadquarter(rc);
-        System.out.println("Write my location");
+        //System.out.println("Write my location");
     }
 
     private static void usageOfFirstDistance(RobotController rc) throws GameActionException {
