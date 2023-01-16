@@ -3,6 +3,7 @@ package examplefuncsplayer;
 import battlecode.common.MapLocation;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class ArrayEntity {
 
@@ -29,4 +30,13 @@ public class ArrayEntity {
     public void setIndex(int index) {
         this.index = index;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ArrayEntity that = (ArrayEntity) o;
+        return ownLocation.equals(that.ownLocation);
+    }
+
 }

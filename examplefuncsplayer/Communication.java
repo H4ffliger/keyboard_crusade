@@ -40,8 +40,6 @@ class Communication {
     private static final int ISLAND_HEALTH_BITS = 3;
     private static final int ISLAND_HEALTH_SIZE = (int) Math.ceil(Anchor.ACCELERATING.totalHealth / 8.0);
 
-
-    private static int ownIndexforHQ;
     private static List<Message> messagesQueue = new ArrayList<>();
     private static HeadquarterEntity[] headquarterEntities = new HeadquarterEntity[GameConstants.MAX_STARTING_HEADQUARTERS];
 
@@ -52,7 +50,6 @@ class Communication {
         MapLocation me = rc.getLocation();
         for (int i = 0; i < GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
             if (rc.readSharedArray(i) == 0) {
-                ownIndexforHQ = i;
                 int writeToSharedArray = locationToInt(rc, me) << HQ_NEEDED_RESOURCE_BITS + HQ_DEFENSE_BITS;
                 rc.writeSharedArray(i, writeToSharedArray);
                 break;
@@ -170,7 +167,6 @@ class Communication {
     }
 
     static void addWell(RobotController rc, WellEntity well) throws GameActionException {
-        getAllWells(rc);
         int status = -1;
         int index = STARTING_WELL_IDX;
         for (WellEntity wellEntity:wellEntities) {
@@ -179,11 +175,10 @@ class Communication {
                     status=1;
                     wellEntity.setIndex(well.getIndex());
                     break;
+                } else {
+                    index++;
                 }
-                index++;
             } else {
-                index++;
-                System.out.println("Well null");
                 break;
             }
         }
@@ -196,13 +191,14 @@ class Communication {
         } else {
             messagesQueue.add(new Message(well.getIndex(),writeToSharedArray,turnCount));
         }
+        tryWriteMessages(rc);
     }
 
     static WellEntity[] getAllWells(RobotController rc) throws GameActionException {
         for (int i = STARTING_WELL_IDX; i < MAX_WELLS_IN_ARRAY + STARTING_WELL_IDX; i++) {
             if (rc.readSharedArray(i) != 0) {
                 int readFromSharedArray = rc.readSharedArray(i);
-                int location =  readFromSharedArray>> WELL_STATUS_BITS + WELL_DEFENSE_BITS;
+                int location =  readFromSharedArray >> WELL_STATUS_BITS + WELL_DEFENSE_BITS;
                 WellEntity newEntity = new WellEntity(i, intToLocation(rc, location));
                 newEntity.setDefenseStatus(readFromSharedArray+0b11);
                 int status =  readFromSharedArray>> WELL_DEFENSE_BITS;

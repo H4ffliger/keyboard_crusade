@@ -4,8 +4,7 @@ import battlecode.common.*;
 
 import java.util.*;
 
-import static examplefuncsplayer.Communication.addWell;
-import static examplefuncsplayer.Communication.getHeadquarters;
+import static examplefuncsplayer.Communication.*;
 import static examplefuncsplayer.Pathfinding.goToPosition;
 import static examplefuncsplayer.RobotPlayer.*;
 import static examplefuncsplayer.Strategy.explore;
@@ -83,12 +82,14 @@ public class Carrier {
 
     private static void senseWellsAndAddNewOne(RobotController rc) throws GameActionException {
         WellInfo[] wellInfos = rc.senseNearbyWells();
+        getAllWells(rc);
         for (WellInfo wellInfo : wellInfos) {
             if (!manaWells.contains(wellInfo.getMapLocation())) {
                 manaWells.add(wellInfo.getMapLocation());
                 WellEntity addedEntity = new WellEntity(-1, wellInfo.getMapLocation());
                 addedEntity.setWellStatus(1);
                 mnWellEntities.add(addedEntity);
+                System.out.println("Try write new Well: " + wellInfo.getMapLocation() + " location: " + addedEntity.getOwnLocation());
                 addWell(rc, addedEntity);
             } else if (!adWells.contains(wellInfo.getMapLocation())) {
                 adWells.add(wellInfo.getMapLocation());
@@ -98,6 +99,7 @@ public class Carrier {
                 addWell(rc, addedEntity);
             }
         }
+        tryWriteMessages(rc);
     }
 
     //unused

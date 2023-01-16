@@ -2,6 +2,8 @@ package examplefuncsplayer;
 
 import battlecode.common.MapLocation;
 
+import java.util.Objects;
+
 public class WellEntity extends ArrayEntity {
 
     private int wellStatus;
@@ -28,4 +30,5 @@ public class WellEntity extends ArrayEntity {
     public void setDefenseStatus(int defenseStatus) {
         this.defenseStatus = defenseStatus;
     }
+
 }

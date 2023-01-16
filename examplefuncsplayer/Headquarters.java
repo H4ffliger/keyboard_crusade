@@ -2,7 +2,7 @@ package examplefuncsplayer;
 
 import battlecode.common.*;
 
-import static examplefuncsplayer.Communication.addHeadquarter;
+import static examplefuncsplayer.Communication.*;
 import static examplefuncsplayer.RobotPlayer.*;
 
 public class Headquarters {
@@ -61,46 +61,12 @@ public class Headquarters {
     private static void usageOfFirstDistance(RobotController rc) throws GameActionException {
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
-            //searches for the first recurse
-            int index = 0;
-            while (rc.readSharedArray(index) != 0 || index == 63) {
-                //System.out.println("Read to Array: " + index);
-                index++;
-            }
-            if (rc.readSharedArray(index) == 0) {
-                //Locations of Wells
-                int x = well.getMapLocation().x;
-                int y = well.getMapLocation().y;
-                String xString, yString;
-                if (x < 10) {
-                    xString = "0" + x;
-                } else {
-                    xString = Integer.toString(x);
-                }
-                if (y < 10) {
-                    yString = "0" + y;
-                } else {
-                    yString = Integer.toString(y);
-                }
-                //tells what ResourceType you have near.
-                String ownInformationIntegerString;
-                if (well.getResourceType() == ResourceType.ADAMANTIUM) {
-                    ownInformationIntegerString = 2 + xString + yString;
-                    System.out.println("Found ADAMANTIUM");
-                } else if (well.getResourceType() == ResourceType.ELIXIR) {
-                    ownInformationIntegerString = 3 + xString + yString;
-                    System.out.println("Found ELIXIR");
-                } else if (well.getResourceType() == ResourceType.MANA) {
-                    ownInformationIntegerString = 4 + xString + yString;
-                    System.out.println("Found MANA");
-                } else ownInformationIntegerString = "0";
-                int ownInformation = Integer.parseInt(ownInformationIntegerString);
-
-                rc.writeSharedArray(index, ownInformation);
-                System.out.println("Well Index + ownInformation send");
-
-            }
+            WellEntity wellEntity= new WellEntity(-1,well.getMapLocation());
+            if (well.getResourceType()==ResourceType.ADAMANTIUM) wellEntity.setWellStatus(2);
+            else wellEntity.setWellStatus(1);
+            addWell(rc,wellEntity);
         }
+        tryWriteMessages(rc);
     }
 
 
