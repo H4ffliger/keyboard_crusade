@@ -4,6 +4,7 @@ import battlecode.common.*;
 
 import java.util.*;
 
+import static examplefuncsplayer.Communication.addWell;
 import static examplefuncsplayer.Communication.getHeadquarters;
 import static examplefuncsplayer.Pathfinding.goToPosition;
 import static examplefuncsplayer.RobotPlayer.*;
@@ -15,7 +16,10 @@ public class Carrier {
     private static MapLocation homeHQ = null;
 
     private static ArrayList<MapLocation> adWells = new ArrayList<>();
+    private static ArrayList<WellEntity> adWellEntities = new ArrayList<>();
     private static ArrayList<MapLocation> manaWells = new ArrayList<>();
+
+    private static ArrayList<WellEntity> mnWellEntities = new ArrayList<>();
     private static int goal = 1;
 
     //TODO: change strategy to place anchor
@@ -24,6 +28,10 @@ public class Carrier {
     static void runCarrier(RobotController rc) throws GameActionException {
         if (turnCount == 1) initialisation(rc);
         MapLocation me = rc.getLocation();
+        if (turnCount % 2 == 0) {
+            //every second turn sense Wells
+            senseWellsAndAddNewOne(rc);
+        }
         if (goal == 0) {
             //find new strategy
             if (rc.canTakeAnchor(homeHQ, Anchor.STANDARD)) {
@@ -71,6 +79,25 @@ public class Carrier {
             System.out.println("Goal = something else");
         }
 
+    }
+
+    private static void senseWellsAndAddNewOne(RobotController rc) throws GameActionException {
+        WellInfo[] wellInfos = rc.senseNearbyWells();
+        for (WellInfo wellInfo : wellInfos) {
+            if (!manaWells.contains(wellInfo.getMapLocation())) {
+                manaWells.add(wellInfo.getMapLocation());
+                WellEntity addedEntity = new WellEntity(-1, wellInfo.getMapLocation());
+                addedEntity.setWellStatus(0);
+                mnWellEntities.add(addedEntity);
+                addWell(rc, addedEntity);
+            } else if (!adWells.contains(wellInfo.getMapLocation())) {
+                adWells.add(wellInfo.getMapLocation());
+                WellEntity addedEntity = new WellEntity(-1, wellInfo.getMapLocation());
+                addedEntity.setWellStatus(1);
+                adWellEntities.add(addedEntity);
+                addWell(rc, addedEntity);
+            }
+        }
     }
 
     //unused
@@ -170,15 +197,15 @@ public class Carrier {
     }
 
     private static void goMining(RobotController rc, MapLocation me, ResourceType rt) throws GameActionException {
-        ArrayList<MapLocation> selectWells = null;
+        ArrayList<WellEntity> selectWells = null;
         switch (rt) {
             case NO_RESOURCE:
                 break;
             case ADAMANTIUM:
-                selectWells = adWells;
+                selectWells = adWellEntities;
                 break;
             case MANA:
-                selectWells = manaWells;
+                selectWells = mnWellEntities;
                 break;
             case ELIXIR:
                 break;
@@ -186,9 +213,9 @@ public class Carrier {
         if (selectWells != null && selectWells.size() > 0) {
             rc.setIndicatorString("Did find a well");
             int minimalDistance = 100000;
-            MapLocation nearestWell = null;
-            for (MapLocation oneWell : selectWells) {
-                int actualDistance = me.distanceSquaredTo(oneWell);
+            WellEntity nearestWell = null;
+            for (WellEntity oneWell : selectWells) {
+                int actualDistance = me.distanceSquaredTo(oneWell.getOwnLocation());
                 if (actualDistance < minimalDistance) {
                     minimalDistance = actualDistance;
                     nearestWell = oneWell;
@@ -196,7 +223,7 @@ public class Carrier {
             }
             if (nearestWell != null) {
                 rc.setIndicatorString("Going to mine");
-                goMining(rc, me, nearestWell);
+                goMining(rc, me, nearestWell.getOwnLocation());
             } else {
                 System.out.println("NearestWell is null");
             }
@@ -214,8 +241,10 @@ public class Carrier {
             if (!adWells.contains(wellLoc) || !manaWells.contains(wellLoc)) {
                 if (well.getResourceType() == ResourceType.ADAMANTIUM) {
                     adWells.add(wellLoc);
+                    adWellEntities.add(new WellEntity(-1, wellLoc));
                 } else if (well.getResourceType() == ResourceType.MANA) {
                     manaWells.add(wellLoc);
+                    mnWellEntities.add(new WellEntity(-1, wellLoc));
                 }
             }
         }

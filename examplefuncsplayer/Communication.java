@@ -1,10 +1,11 @@
 package examplefuncsplayer;
 
 import battlecode.common.*;
-import battlecode.world.Well;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static examplefuncsplayer.RobotPlayer.turnCount;
 
 class Message {
     public int idx;
@@ -42,7 +43,7 @@ class Communication {
 
     private static int ownIndexforHQ;
     private static List<Message> messagesQueue = new ArrayList<>();
-    private static HeadquarterEntity[] headquarterLocs = new HeadquarterEntity[GameConstants.MAX_STARTING_HEADQUARTERS];
+    private static HeadquarterEntity[] headquarterEntities = new HeadquarterEntity[GameConstants.MAX_STARTING_HEADQUARTERS];
 
     private static WellEntity[] wellEntities = new WellEntity[MAX_WELLS_IN_ARRAY];
 
@@ -63,7 +64,7 @@ class Communication {
         for (int i = 0; i < GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
             if (rc.readSharedArray(i) != 0) {
                 int readFromSharedArray = rc.readSharedArray(i) >> HQ_NEEDED_RESOURCE_BITS + HQ_DEFENSE_BITS;
-                headquarterLocs[i] = (new HeadquarterEntity(i, intToLocation(rc, readFromSharedArray)));
+                headquarterEntities[i] = (new HeadquarterEntity(i, intToLocation(rc, readFromSharedArray)));
             } else break;
         }
     }
@@ -72,14 +73,14 @@ class Communication {
         updateHeadquarterInfo(rc);
         ArrayList<HeadquarterEntity> headquarters = new ArrayList<>();
         for (int i = 0; i < GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
-            if (headquarterLocs[i] != null) headquarters.add(headquarterLocs[i]);
+            if (headquarterEntities[i] != null) headquarters.add(headquarterEntities[i]);
             else break;
         }
         return headquarters;
     }
 
     static void tryWriteMessages(RobotController rc) throws GameActionException {
-        messagesQueue.removeIf(msg -> msg.turnAdded + OUTDATED_TURNS_AMOUNT < RobotPlayer.turnCount);
+        messagesQueue.removeIf(msg -> msg.turnAdded + OUTDATED_TURNS_AMOUNT < turnCount);
         // Can always write (0, 0), so just checks are we in range to write
         if (rc.canWriteSharedArray(0, 0)) {
             while (messagesQueue.size() > 0) {
@@ -92,14 +93,14 @@ class Communication {
     }
 
     static void updateIslandInfo(RobotController rc, int id) throws GameActionException {
-        if (headquarterLocs[0] == null) {
+        if (headquarterEntities[0] == null) {
             return;
         }
         MapLocation closestIslandLoc = null;
         int closestDistance = -1;
         MapLocation[] islandLocs = rc.senseNearbyIslandLocations(id);
         for (MapLocation loc : islandLocs) {
-            int distance = headquarterLocs[0].getOwnLocation().distanceSquaredTo(loc);
+            int distance = headquarterEntities[0].getOwnLocation().distanceSquaredTo(loc);
             if (closestIslandLoc == null || distance < closestDistance) {
                 closestDistance = distance;
                 closestIslandLoc = loc;
@@ -110,7 +111,7 @@ class Communication {
         int oldIslandValue = rc.readSharedArray(idx);
         int updatedIslandValue = bitPackIslandInfo(rc, idx, closestIslandLoc);
         if (oldIslandValue != updatedIslandValue) {
-            Message msg = new Message(idx, updatedIslandValue, RobotPlayer.turnCount);
+            Message msg = new Message(idx, updatedIslandValue, turnCount);
             messagesQueue.add(msg);
         }
     }
@@ -171,18 +172,26 @@ class Communication {
     static void addWell(RobotController rc, WellEntity well) throws GameActionException {
         getAllWells(rc);
         int status = -1;
-        int index = 0;
+        int index = STARTING_WELL_IDX;
         for (WellEntity wellEntity:wellEntities) {
             if (wellEntity!=null) {
                 if (wellEntity.equals(well)) {
                     status=1;
+                    wellEntity.setIndex(well.getIndex());
+                    break;
                 }
                 index++;
+            } else {
+                index++;
+                System.out.println("Well null");
+                break;
             }
         }
+        int writeToSharedArray = locationToInt(rc,well.getOwnLocation()) << WELL_STATUS_BITS + WELL_DEFENSE_BITS;
         if (status!=1) {
-            int writeToSharedArray = locationToInt(rc,well.getOwnLocation()) << WELL_STATUS_BITS + WELL_DEFENSE_BITS;
-            rc.writeSharedArray(STARTING_WELL_IDX+index,writeToSharedArray);
+            messagesQueue.add(new Message(index,writeToSharedArray,turnCount));
+        } else {
+            messagesQueue.add(new Message(well.getIndex(),writeToSharedArray,turnCount));
         }
     }
 
@@ -205,7 +214,7 @@ class Communication {
                     continue;
                 }
                 if (rc.canSenseLocation(mapLoc) && rc.senseNearbyRobots(mapLoc, AREA_RADIUS, rc.getTeam().opponent()).length == 0) {
-                    Message msg = new Message(i, locationToInt(rc, null), RobotPlayer.turnCount);
+                    Message msg = new Message(i, locationToInt(rc, null), turnCount);
                     messagesQueue.add(msg);
                 }
             } catch (GameActionException ignored) {
@@ -229,7 +238,7 @@ class Communication {
             }
         }
         if (slot != -1) {
-            Message msg = new Message(slot, locationToInt(rc, enemy), RobotPlayer.turnCount);
+            Message msg = new Message(slot, locationToInt(rc, enemy), turnCount);
             messagesQueue.add(msg);
         }
     }
