@@ -13,12 +13,14 @@ public class Headquarters {
         if (turnCount == 1) {
             writeLocationToArray(rc);
             usageOfFirstDistance(rc);
+
         } else {
             updateStatus(rc);
         }
         if (rc.canBuildAnchor(Anchor.STANDARD) && rc.getRoundNum() > 50) {
             // If we can build an anchor do it!
             rc.buildAnchor(Anchor.STANDARD);
+
             //rc.setIndicatorString("Building anchor! " + rc.getAnchor());
         }
 
@@ -35,6 +37,20 @@ public class Headquarters {
     }
 
     private static void updateStatus(RobotController rc) {
+        int status;
+
+        int recurseManagementSinus = 30;
+        int recurseManagement = rc.getResourceAmount(ResourceType.ADAMANTIUM) - rc.getResourceAmount(ResourceType.MANA);
+        if (recurseManagement > recurseManagementSinus){
+            status = 1;
+            System.out.println("recurseManagement overflow ADAMANTIUM ");
+        }
+        if (recurseManagement < -recurseManagementSinus){
+            status = 0;
+            System.out.println("recurseManagement overflow MANA ");
+        }
+        else {System.out.println("recurseManagement EQUILAIZED!!");}
+
     }
 
     private static void writeLocationToArray(RobotController rc) throws GameActionException {
