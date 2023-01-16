@@ -1,6 +1,7 @@
 package examplefuncsplayer;
 
 import battlecode.common.*;
+import battlecode.world.Well;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,24 +26,34 @@ class Communication {
     // Maybe you want to change this based on exact amounts which you can get on turn 1
     static final int STARTING_ISLAND_IDX = GameConstants.MAX_STARTING_HEADQUARTERS;
     static final int STARTING_WELL_IDX = 35 + GameConstants.MAX_STARTING_HEADQUARTERS;
-    private static final int STARTING_ENEMY_IDX = STARTING_WELL_IDX + 15;
+    private static final int MAX_WELLS_IN_ARRAY = 15;
+    private static final int STARTING_ENEMY_IDX = STARTING_WELL_IDX + MAX_WELLS_IN_ARRAY;
 
     private static final int TOTAL_BITS = 16;
     private static final int MAPLOC_BITS = 12;
-    private static final int TEAM_BITS = 1;
-    private static final int HEALTH_BITS = 3;
-    private static final int HEALTH_SIZE = (int) Math.ceil(Anchor.ACCELERATING.totalHealth / 8.0);
+    private static final int HQ_NEEDED_RESOURCE_BITS = 1;
+    private static final int HQ_DEFENSE_BITS = 3;
+    private static final int WELL_STATUS_BITS = 2;
+    private static final int WELL_DEFENSE_BITS = 2;
+    private static final int ISLAND_TEAM_BITS = 1;
+    private static final int ISLAND_HEALTH_BITS = 3;
+    private static final int ISLAND_HEALTH_SIZE = (int) Math.ceil(Anchor.ACCELERATING.totalHealth / 8.0);
 
 
+    private static int ownIndexforHQ;
     private static List<Message> messagesQueue = new ArrayList<>();
-    private static MapLocation[] headquarterLocs = new MapLocation[GameConstants.MAX_STARTING_HEADQUARTERS];
+    private static HeadquarterEntity[] headquarterLocs = new HeadquarterEntity[GameConstants.MAX_STARTING_HEADQUARTERS];
+
+    private static WellEntity[] wellEntities = new WellEntity[MAX_WELLS_IN_ARRAY];
 
 
     static void addHeadquarter(RobotController rc) throws GameActionException {
         MapLocation me = rc.getLocation();
         for (int i = 0; i < GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
             if (rc.readSharedArray(i) == 0) {
-                rc.writeSharedArray(i, locationToInt(rc, me));
+                ownIndexforHQ = i;
+                int writeToSharedArray = locationToInt(rc, me) << HQ_NEEDED_RESOURCE_BITS + HQ_DEFENSE_BITS;
+                rc.writeSharedArray(i, writeToSharedArray);
                 break;
             }
         }
@@ -50,14 +61,16 @@ class Communication {
 
     static void updateHeadquarterInfo(RobotController rc) throws GameActionException {
         for (int i = 0; i < GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
-            if (rc.readSharedArray(i) != 0) headquarterLocs[i] = (intToLocation(rc, rc.readSharedArray(i)));
-            else break;
+            if (rc.readSharedArray(i) != 0) {
+                int readFromSharedArray = rc.readSharedArray(i) >> HQ_NEEDED_RESOURCE_BITS + HQ_DEFENSE_BITS;
+                headquarterLocs[i] = (new HeadquarterEntity(i, intToLocation(rc, readFromSharedArray)));
+            } else break;
         }
     }
 
-    static ArrayList<MapLocation> getHeadquarters(RobotController rc) throws GameActionException {
+    static ArrayList<HeadquarterEntity> getHeadquarters(RobotController rc) throws GameActionException {
         updateHeadquarterInfo(rc);
-        ArrayList<MapLocation> headquarters = new ArrayList<>();
+        ArrayList<HeadquarterEntity> headquarters = new ArrayList<>();
         for (int i = 0; i < GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
             if (headquarterLocs[i] != null) headquarters.add(headquarterLocs[i]);
             else break;
@@ -86,7 +99,7 @@ class Communication {
         int closestDistance = -1;
         MapLocation[] islandLocs = rc.senseNearbyIslandLocations(id);
         for (MapLocation loc : islandLocs) {
-            int distance = headquarterLocs[0].distanceSquaredTo(loc);
+            int distance = headquarterLocs[0].getOwnLocation().distanceSquaredTo(loc);
             if (closestIslandLoc == null || distance < closestDistance) {
                 closestDistance = distance;
                 closestIslandLoc = loc;
@@ -107,9 +120,9 @@ class Communication {
         islandInt = islandInt << (TOTAL_BITS - MAPLOC_BITS);
         try {
             Team teamHolding = rc.senseTeamOccupyingIsland(islandId);
-            islandInt += teamHolding.ordinal() << (TOTAL_BITS - MAPLOC_BITS - TEAM_BITS);
+            islandInt += teamHolding.ordinal() << (TOTAL_BITS - MAPLOC_BITS - ISLAND_TEAM_BITS);
             int islandHealth = rc.senseAnchorPlantedHealth(islandId);
-            int healthEncoding = (int) Math.ceil((double) islandHealth / HEALTH_SIZE);
+            int healthEncoding = (int) Math.ceil((double) islandHealth / ISLAND_HEALTH_SIZE);
             islandInt += healthEncoding;
             return islandInt;
         } catch (GameActionException e) {
@@ -123,7 +136,7 @@ class Communication {
             int islandInt = rc.readSharedArray(islandId);
             int healthMask = 0b111;
             int health = islandInt & healthMask;
-            int team = (islandInt >> HEALTH_BITS) & 0b1;
+            int team = (islandInt >> ISLAND_HEALTH_BITS) & 0b1;
             if (health > 0) {
                 return Team.values()[team];
             }
@@ -136,7 +149,7 @@ class Communication {
         try {
             islandId = islandId + STARTING_ISLAND_IDX;
             int islandInt = rc.readSharedArray(islandId);
-            int idx = islandInt >> (HEALTH_BITS + TEAM_BITS);
+            int idx = islandInt >> (ISLAND_HEALTH_BITS + ISLAND_TEAM_BITS);
             return intToLocation(rc, idx);
         } catch (GameActionException ignored) {
         }
@@ -149,10 +162,38 @@ class Communication {
             int islandInt = rc.readSharedArray(islandId);
             int healthMask = 0b111;
             int health = islandInt & healthMask;
-            return health * HEALTH_SIZE;
+            return health * ISLAND_HEALTH_SIZE;
         } catch (GameActionException e) {
             return -1;
         }
+    }
+
+    static void addWell(RobotController rc, WellEntity well) throws GameActionException {
+        getAllWells(rc);
+        int status = -1;
+        int index = 0;
+        for (WellEntity wellEntity:wellEntities) {
+            if (wellEntity!=null) {
+                if (wellEntity.equals(well)) {
+                    status=1;
+                }
+                index++;
+            }
+        }
+        if (status!=1) {
+            int writeToSharedArray = locationToInt(rc,well.getOwnLocation()) << WELL_STATUS_BITS + WELL_DEFENSE_BITS;
+            rc.writeSharedArray(STARTING_WELL_IDX+index,writeToSharedArray);
+        }
+    }
+
+    static WellEntity[] getAllWells(RobotController rc) throws GameActionException {
+        for (int i = STARTING_WELL_IDX; i < MAX_WELLS_IN_ARRAY + STARTING_WELL_IDX; i++) {
+            if (rc.readSharedArray(i) != 0) {
+                int readFromSharedArray = rc.readSharedArray(i) >> WELL_STATUS_BITS + WELL_DEFENSE_BITS;
+                wellEntities[i - STARTING_WELL_IDX] = (new WellEntity(i, intToLocation(rc, readFromSharedArray)));
+            } else break;
+        }
+        return wellEntities;
     }
 
 

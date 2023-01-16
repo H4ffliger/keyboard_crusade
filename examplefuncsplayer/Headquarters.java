@@ -8,16 +8,13 @@ import static examplefuncsplayer.RobotPlayer.*;
 public class Headquarters {
     //TODO: Do limits dynamically
     //TODO: Make better strategy
-    private static int producedCarrier = 0;
-    private static int carrierLimit = 20;
-
-    private static int producedLauncher = 0;
-    private static int launcherLimit = 1117;
 
     static void runHeadquarters(RobotController rc) throws GameActionException {
         if (turnCount == 1) {
             writeLocationToArray(rc);
             usageOfFirstDistance(rc);
+        } else {
+            updateStatus(rc);
         }
         if (rc.canBuildAnchor(Anchor.STANDARD) && rc.getRoundNum() > 50) {
             // If we can build an anchor do it!
@@ -29,15 +26,15 @@ public class Headquarters {
         //rc.setIndicatorString("Trying to build a carrier");
         for (Direction dirLoop : Direction.allDirections()) {
             MapLocation buildPlace = rc.getLocation().add(dirLoop);
-            if ((rc.canBuildRobot(RobotType.CARRIER, buildPlace)) && (producedCarrier < carrierLimit)) {
+            if ((rc.canBuildRobot(RobotType.CARRIER, buildPlace))) {
                 rc.buildRobot(RobotType.CARRIER, buildPlace);
-                producedCarrier++;
-
-            } else if (rc.canBuildRobot(RobotType.LAUNCHER, buildPlace) && (producedLauncher < launcherLimit)) {
+            } else if (rc.canBuildRobot(RobotType.LAUNCHER, buildPlace)) {
                 rc.buildRobot(RobotType.LAUNCHER, buildPlace);
-                launcherLimit++;
             }
         }
+    }
+
+    private static void updateStatus(RobotController rc) {
     }
 
     private static void writeLocationToArray(RobotController rc) throws GameActionException {

@@ -11,7 +11,7 @@ import static examplefuncsplayer.Strategy.explore;
 
 public class Carrier {
 
-    private static ArrayList<MapLocation> hqLocations = new ArrayList<>();
+    private static ArrayList<HeadquarterEntity> hqLocations = new ArrayList<>();
     private static MapLocation homeHQ = null;
 
     private static ArrayList<MapLocation> adWells = new ArrayList<>();
@@ -30,12 +30,16 @@ public class Carrier {
                 rc.takeAnchor(homeHQ, Anchor.STANDARD);
                 goal = 3;
             } else {
-                goal = rng.nextInt(2) + 4;
+                if (rng.nextInt(3) == 0) {
+                    goal = 4;
+                } else {
+                    goal = 5;
+                }
             }
 
         } else if (goal == 1) {
             rc.setIndicatorString("I go mining");
-            goMining(rc, me);
+            goMining(rc, me, ResourceType.MANA);
 
             if (getTotalResources(rc) == 40) {
                 goal = 2;
@@ -76,7 +80,7 @@ public class Carrier {
             int[] islands = rc.senseNearbyIslands();
             Set<MapLocation> islandLocs = new HashSet<>();
             for (int id : islands) {
-                if (rc.senseTeamOccupyingIsland(id)!=rc.getTeam()) {
+                if (rc.senseTeamOccupyingIsland(id) != rc.getTeam()) {
                     MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
                     islandLocs.addAll(Arrays.asList(thisIslandLocs));
                 }
@@ -136,15 +140,17 @@ public class Carrier {
                 }
             } else {
                 int minimalDistance = 100000;
-                MapLocation bestHQ = null;
-                for (MapLocation hq : hqLocations) {
-                    int actualDistance = me.distanceSquaredTo(hq);
+                HeadquarterEntity bestHQ = null;
+                for (HeadquarterEntity hq : hqLocations) {
+                    int actualDistance = me.distanceSquaredTo(hq.getOwnLocation());
                     if (actualDistance < minimalDistance) {
                         minimalDistance = actualDistance;
                         bestHQ = hq;
                     }
                 }
-                goToPosition(rc,bestHQ);
+                if (bestHQ != null) {
+                    goToPosition(rc, bestHQ.getOwnLocation());
+                }
                 System.out.println("HomeHQ is null");
             }
 
@@ -197,7 +203,7 @@ public class Carrier {
 
         } else {
             rc.setIndicatorString("Didn't find Well of type: " + rt);
-            goal = 1;
+            goMining(rc, me);
         }
     }
 
@@ -252,10 +258,10 @@ public class Carrier {
     }
 
     private static void getImportantLocations(RobotController rc) throws GameActionException {
-        hqLocations=getHeadquarters(rc);
+        hqLocations = getHeadquarters(rc);
         RobotInfo[] robots = rc.senseNearbyRobots();
-        for(RobotInfo robot : robots) {
-            if(robot.getTeam() == rc.getTeam() && robot.getType() == RobotType.HEADQUARTERS) {
+        for (RobotInfo robot : robots) {
+            if (robot.getTeam() == rc.getTeam() && robot.getType() == RobotType.HEADQUARTERS) {
                 homeHQ = robot.getLocation();
                 break;
             }

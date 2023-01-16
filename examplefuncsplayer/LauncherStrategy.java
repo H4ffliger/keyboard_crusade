@@ -23,7 +23,7 @@ public class LauncherStrategy {
         updateHeadquarterInfo(rc);
         clearObsoleteEnemies(rc);
         for (RobotInfo enemy : enemies) {
-            reportEnemy(rc, enemy.location);
+            //reportEnemy(rc, enemy.location);
             int enemyHealth = enemy.getHealth();
             int enemyDistance = enemy.getLocation().distanceSquaredTo(rc.getLocation());
             if (enemyHealth < lowestHealth) {
@@ -42,28 +42,36 @@ public class LauncherStrategy {
             if (rc.canAttack(target.getLocation()))
                 rc.attack(target.getLocation());
         } else {
-            WellInfo[] wells = rc.senseNearbyWells();
-            if (wells.length > 0) {
-                MapLocation wellLoc = wells[0].getMapLocation();
-                if (rc.getLocation().distanceSquaredTo(wellLoc) > 9) {
-                    Direction dir = rc.getLocation().directionTo(wellLoc);
-                    if (rc.canMove(dir))
-                        rc.move(dir);
+            if (rc.senseNearbyWells(rc.getLocation(),1).length==0) {
+                rc.setIndicatorString("I don't stand on a well");
+                WellInfo[] wells = rc.senseNearbyWells();
+                if (wells.length > 0) {
+                    for (WellInfo well:wells) {
+                        MapLocation wellLoc = well.getMapLocation();
+                        if (!rc.canSenseRobotAtLocation(wellLoc)) {
+                            moveTowards(rc,wellLoc);
+                            break;
+                        }
+                    }
                 } else {
-                    Direction dir = wellLoc.directionTo(rc.getLocation());
-                    if (rc.canMove(dir))
-                        rc.move(dir);
+                    moveTowards(rc, new MapLocation(rc.getMapHeight() / 2, rc.getMapWidth() / 2));
                 }
             } else {
-                moveTowards(rc, new MapLocation(rc.getMapHeight() / 2, rc.getMapWidth() / 2));
+                rc.setIndicatorString("Stay on well");
+                Clock.yield();
             }
+
         }
 
+        //go to Enemy Headquarters if possible
         RobotInfo[] visibleEnemies = rc.senseNearbyRobots(-1, opponent);
         for (RobotInfo enemy : visibleEnemies) {
             if (enemy.getType() != RobotType.HEADQUARTERS) {
                 MapLocation enemyLocation = enemy.getLocation();
                 MapLocation robotLocation = rc.getLocation();
+                if (rc.getLocation().distanceSquaredTo(enemyLocation)==1) {
+                    Clock.yield();
+                }
                 Direction moveDir = robotLocation.directionTo(enemyLocation);
                 if (rc.canMove(moveDir)) {
                     rc.move(moveDir);
