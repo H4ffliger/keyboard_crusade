@@ -1,7 +1,32 @@
-- Locations (headquaters, wells, skyisland, information about the enemy)
-- 
-1000198911
-1000198922
+Array:
+0 - MAX_HEADQUARTERS: Headquarter Location
+MAX_HEADQUARTERS - MAX_HEADQUARTERS + MAX_ISLANDS: Island Location
+ISLAND_IDX - ISLAND_IDX + 15: Well Location
+WELL_IDX - 63: Target Location
+
+16 Bits:
+12 Bits for Location
+
+HQ:
+LOCATION:RESOURCE:DEFENSE
+1 Bit for needed Resource
+3 Bit for defense //
+
+Islands:
+3 Bits for Health
+1 Bit for Team
+
+Well:
+2 Bit for defense
+2 Bit for status
+
+
+
+
+
+
+
+
 
 0-3:	HQ Towers (XXCord,YYCord,0-9) (0=Ad, 1=Mn, 2=Ex, 3=def
 Legend:
@@ -45,4 +70,46 @@ Miner03 registers that he is alive and sets the number 0, 8 or 9 to it's status 
 06:XXYYS	HQ enemy 03	
 07:XXYYS	HQ enemy 04
 08:SSSS		Miner management for up to 12 miners
-09:
+09:SSSS		Miner management for up to 12 miners
+10:SSSS		Miner management for up to 12 miners
+11:SSSS		Miner management for up to 12 miners
+12:SSSS		Launcher management for up to 12 Launcher
+13:SSSS		Launcher management for up to 12 Launcher
+14:SSSS		Launcher management for up to 12 Launcher
+15:SSSS		Launcher management for up to 12 Launcher
+16:XXYYS    Island Coordinates and ID
+17:XXYYS    Island Coordinates and ID
+18:XXYYS    Island Coordinates and ID
+19:XXYYS    Island Coordinates and ID
+20:XXYYS    Admantium Well
+21:XXYYS    Admantium Well
+22:XXYYS    Admantium Well
+23:XXYYS    Admantium Well
+24:XXYYS    Admantium Well
+25:XXYYS    Mana Well
+26:XXYYS    Mana Well
+27:XXYYS    Mana Well
+28:XXYYS    Mana Well
+
+
+There Array should be dynamic, but structured
+The first is the Index
+From 1 to max 4 are HQ
+From Amount HQ to double Amount HQ are enemy HQ
+From double Amount HQ are miner managements
+After miner managements are launcher managements
+After launcher managements are Wells
+After Wells, targets
+Islands are from 63 down
+
+There are
+
+00:HWWII    Index - H = Amount of HQs, WW = Amount of Wells, II = Amount of Islands
+01:XXYYS    own HQ
+05:XXYYS    enemy HQ
+09:SSSSS    miner management
+13:SSSSS    launcher management
+17:XXYYS    target
+21:XXYYS    Wells
+36:XXYYS    Islands
+
