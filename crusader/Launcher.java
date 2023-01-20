@@ -3,6 +3,7 @@ package crusader;
 import battlecode.common.*;
 import scala.Int;
 
+import javax.print.attribute.standard.Destination;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -20,9 +21,10 @@ public class Launcher {
     private static Integer spawnY;
 
     private static MapLocation saveSpace;
+    private static MapLocation enemySpace;
 
     //For attacks and exploring
-    private static Integer armyDivider = 2;
+    private static Integer armyDivider = 4;
 
     private static int protectForXMoves = 0;
 
@@ -39,11 +41,17 @@ public class Launcher {
             spawnX = rc.getLocation().x;
             spawnY = rc.getLocation().y;
             saveSpace = rc.getLocation();
-            Direction d = new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2).directionTo(rc.getLocation());
-            for(int z = 0; z<10; z++){
-                saveSpace = saveSpace.add(d);
+            Direction dS = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2).directionTo(rc.getLocation());
+            Direction dE = rc.getLocation().directionTo(new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2));
+            for (int z = 0; z < 10; z++) {
+                saveSpace = saveSpace.add(dS);
+            }
+            enemySpace = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);
+            for (int z = rc.getMapHeight() / 4 + rc.getMapWidth() / 4; z >= 0; z--) {
+                enemySpace = enemySpace.add(dE);
             }
         }
+
 
         if(hqLocations.size()==0) {
             //Set the local hq Positions
@@ -91,7 +99,7 @@ public class Launcher {
             currently just hardcode spreading, integrate communication for coordinated attack
              */
 
-            if(rc.getRoundNum()/10 + 10 > rc.getRobotCount() && rc.getRoundNum() < 600 && rc.getRoundNum() > 150 && protectForXMoves == 0) {
+            if(rc.getRoundNum()/10 + 15 > rc.getRobotCount() && rc.getRoundNum() < 600 && rc.getRoundNum() > 150 && protectForXMoves == 0) {
                 //Protect HQ, because the center is lost and we will save the robots
                 protectForXMoves = 300 -  (rc.getRoundNum()-100);
             }
@@ -106,18 +114,31 @@ public class Launcher {
             }
             else if(protectForXMoves < 0){
                 protectForXMoves --;
-                attack(rc, exploreID);
-                rc.setIndicatorString("Attack explore");
-                if(protectForXMoves < -200){
+                if(botID % armyDivider >= 1) {
+                    attack(rc, enemySpace.x, enemySpace.y);
+                    rc.setIndicatorString("Attack enemy space at X: " +
+                            Integer.toString(enemySpace.x) + " Y: " + Integer.toString(enemySpace.y));
+                }
+                else {
+                    attack(rc, exploreID);
+                    rc.setIndicatorString("Attack explore");
+                }
+                if(protectForXMoves < -200 + (rc.getMapHeight()+rc.getMapWidth())*3){
                     protectForXMoves = 0;
                 }
             }
-            else if(rc.getRoundNum() > 450 && rc.getRoundNum() < 650 ||
-                    rc.getRoundNum() > 1000 && rc.getRoundNum() < 1100 ||
-                    rc.getRoundNum() > 1300 && rc.getRoundNum() < 1400){
-                if(botID % armyDivider == 1){
+            else if(rc.getRoundNum() > 375 && rc.getRoundNum() < 575 ||
+                    rc.getRoundNum() > 900 && rc.getRoundNum() < 1500 ||
+                    rc.getRoundNum() > 1900 && rc.getRoundNum() < 2000){
+                if(botID % armyDivider >= 3){
                     rc.setIndicatorString("Attack explore");
                     attack(rc, exploreID);
+                }
+                else if(botID % armyDivider == 2){
+                    System.out.println("TTTT");
+                    attack(rc, enemySpace.x, enemySpace.y);
+                    rc.setIndicatorString("Attack enemy space at X: " +
+                            Integer.toString(enemySpace.x) + " Y: " + Integer.toString(enemySpace.y));
                 }
                 else{
                     rc.setIndicatorString("Attack center");
