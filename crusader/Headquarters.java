@@ -17,27 +17,37 @@ public class Headquarters {
         } else {
             updateStatus(rc);
         }
-        if (rc.canBuildAnchor(Anchor.STANDARD) && rc.getRoundNum() > 50) {
-            // If we can build an anchor do it!
-            rc.buildAnchor(Anchor.STANDARD);
+        if (rc.getRobotCount()>=100 && rng.nextInt(5)>0) {
+            if (rc.canBuildAnchor(Anchor.STANDARD) && rc.getRoundNum() > 50) {
+                // If we can build an anchor do it!
+                rc.buildAnchor(Anchor.STANDARD);
 
-            //rc.setIndicatorString("Building anchor! " + rc.getAnchor());
-        }
+                //rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+            }
+        } else {
+            if (rc.canBuildAnchor(Anchor.STANDARD) && rc.getRoundNum() > 50) {
+                // If we can build an anchor do it!
+                rc.buildAnchor(Anchor.STANDARD);
 
-        // Let's try to build a carrier.
-        //rc.setIndicatorString("Trying to build a carrier");
-        for (Direction dirLoop : Direction.allDirections()) {
-            MapLocation buildPlace = rc.getLocation().add(dirLoop);
-            if ((rc.canBuildRobot(RobotType.CARRIER, buildPlace))) {
-                rc.buildRobot(RobotType.CARRIER, buildPlace);
-            } else if (rc.canBuildRobot(RobotType.LAUNCHER, buildPlace)) {
-                rc.buildRobot(RobotType.LAUNCHER, buildPlace);
+                //rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+            }
+
+            // Let's try to build a carrier.
+            //rc.setIndicatorString("Trying to build a carrier");
+            for (Direction dirLoop : Direction.allDirections()) {
+                MapLocation buildPlace = rc.getLocation().add(dirLoop);
+                if ((rc.canBuildRobot(RobotType.CARRIER, buildPlace))) {
+                    rc.buildRobot(RobotType.CARRIER, buildPlace);
+                } else if (rc.canBuildRobot(RobotType.LAUNCHER, buildPlace)) {
+                    rc.buildRobot(RobotType.LAUNCHER, buildPlace);
+                }
             }
         }
     }
 
+    //TODO use status
     private static void updateStatus(RobotController rc) {
-        int status;
+        /*int status;
 
         int recurseManagementSinus = 30;
         int recurseManagement = rc.getResourceAmount(ResourceType.ADAMANTIUM) - rc.getResourceAmount(ResourceType.MANA);
@@ -49,8 +59,8 @@ public class Headquarters {
             status = 0;
             //System.out.println("recurseManagement overflow MANA ");
         }
-        else {/*System.out.println("recurseManagement EQUILAIZED!!");*/}
-
+        else {System.out.println("recurseManagement EQUILAIZED!!");}
+*/
     }
 
     private static void writeLocationToArray(RobotController rc) throws GameActionException {
