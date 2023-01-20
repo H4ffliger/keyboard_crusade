@@ -36,9 +36,17 @@ public class Launcher {
         if (enemies.length > 0) {
             //Attack first Launcher
             RobotInfo target=enemies[0];
+            int lowestHealth = 400;
+
             for(RobotInfo info :enemies) {
-                target=info;
-                if (info.getType()==RobotType.LAUNCHER||info.getType()==RobotType.DESTABILIZER) break;
+
+                //Attack Launcher with lowest health first.
+                if (info.getType()==RobotType.LAUNCHER||info.getType()==RobotType.DESTABILIZER) {
+                    if(info.getHealth() < lowestHealth) {
+                        lowestHealth = info.getHealth();
+                        target = info;
+                    }
+                }
             }
             MapLocation toAttack = target.location;
             if (rc.canAttack(toAttack)) {
