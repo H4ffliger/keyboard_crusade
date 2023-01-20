@@ -118,7 +118,7 @@ class Communication {
             int islandInt = rc.readSharedArray(islandId);
             int healthMask = 0b111;
             int health = islandInt & healthMask;
-            int team = (islandInt >> HEALTH_BITS) % 0b1;
+            int team = (islandInt >> HEALTH_BITS) & 0b1;
             if (health > 0) {
                 return Team.values()[team];
             }

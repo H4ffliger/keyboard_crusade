@@ -30,7 +30,7 @@ public class LauncherStrategy {
         Team opponent = rc.getTeam().opponent();
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
         RobotInfo targetRobot = null;
-        int lowestHealth = 100;
+        int lowestHealth = 400;
         for (RobotInfo enemy : enemies) {
             //reportEnemy(rc, enemy.location);
             int enemyHealth = enemy.getHealth();
