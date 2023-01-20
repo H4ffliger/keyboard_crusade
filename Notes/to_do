@@ -8,3 +8,7 @@ Huffligers:
 - Pathfinging improvements:
 	- Go around opjects with the closest line
 	- Better movement guide when getting stuck
+
+Schlienger:
+- Better Pathfinding
+- Launcher attack strategy

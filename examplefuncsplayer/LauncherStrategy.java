@@ -59,6 +59,7 @@ public class LauncherStrategy {
         if (goal == 0) {
             decideWhatToDo(rc);
         }
+
         rc.setIndicatorString("Goal: " + goal);
         switch (goal) {
             case 1: {
@@ -132,6 +133,7 @@ public class LauncherStrategy {
         }*/
     }
 
+    //TODO sense enemy HQ, targets...
     private static void senseImportantLocations(RobotController rc) throws GameActionException {
         WellInfo[] nearbyWells = rc.senseNearbyWells();
         wellEntities = getAllWells(rc);
