@@ -1,13 +1,13 @@
-package examplefuncsplayer;
+package crusader;
 
 import battlecode.common.*;
 
 import java.util.*;
 
-import static examplefuncsplayer.Communication.*;
-import static examplefuncsplayer.Pathfinding.goToPosition;
-import static examplefuncsplayer.RobotPlayer.*;
-import static examplefuncsplayer.Strategy.explore;
+import static crusader.Communication.*;
+import static crusader.Pathfinding.goToPosition;
+import static crusader.RobotPlayer.*;
+import static crusader.Strategy.explore;
 
 public class Carrier {
 

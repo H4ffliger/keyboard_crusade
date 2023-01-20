@@ -1,12 +1,11 @@
-package examplefuncsplayer;
+package crusader;
 
 import battlecode.common.*;
-import battlecode.world.Well;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static examplefuncsplayer.RobotPlayer.turnCount;
+import static crusader.RobotPlayer.turnCount;
 
 class Message {
     public int idx;

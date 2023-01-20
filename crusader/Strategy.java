@@ -1,4 +1,4 @@
-package examplefuncsplayer;
+package crusader;
 
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
@@ -8,7 +8,7 @@ import battlecode.common.WellInfo;
 import java.util.ArrayList;
 import java.util.Random;
 
-import static examplefuncsplayer.Pathfinding.goToPosition;
+import static crusader.Pathfinding.goToPosition;
 
 public class Strategy {
 

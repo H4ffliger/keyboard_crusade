@@ -1,13 +1,12 @@
-package examplefuncsplayer;
+package crusader;
 
 import battlecode.common.*;
-import battlecode.world.Well;
 
 import java.util.ArrayList;
 
-import static examplefuncsplayer.Communication.*;
-import static examplefuncsplayer.Pathing.moveTowards;
-import static examplefuncsplayer.RobotPlayer.*;
+import static crusader.Communication.*;
+import static crusader.Pathing.moveTowards;
+import static crusader.RobotPlayer.*;
 
 public class LauncherStrategy {
 

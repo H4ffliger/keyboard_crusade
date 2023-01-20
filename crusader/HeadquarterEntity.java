@@ -1,4 +1,4 @@
-package examplefuncsplayer;
+package crusader;
 
 import battlecode.common.MapLocation;
 

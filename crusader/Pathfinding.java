@@ -1,10 +1,10 @@
-package examplefuncsplayer;
+package crusader;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 import battlecode.common.MapLocation;
 
-import static examplefuncsplayer.Pathing.moveTowards;
+import static crusader.Pathing.moveTowards;
 
 public class Pathfinding {
 

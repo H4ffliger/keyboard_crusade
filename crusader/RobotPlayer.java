@@ -1,11 +1,11 @@
-package examplefuncsplayer;
+package crusader;
 
 import battlecode.common.*;
 
 import java.util.Random;
 
-import static examplefuncsplayer.Carrier.runCarrier;
-import static examplefuncsplayer.Headquarters.runHeadquarters;
+import static crusader.Carrier.runCarrier;
+import static crusader.Headquarters.runHeadquarters;
 
 /**
  * RobotPlayer is the class that describes your main robot strategy.

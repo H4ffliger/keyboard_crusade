@@ -1,4 +1,4 @@
-package examplefuncsplayer;
+package crusader;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;

@@ -1,8 +1,6 @@
-package examplefuncsplayer;
+package crusader;
 
 import battlecode.common.MapLocation;
-
-import java.util.Objects;
 
 public class WellEntity extends ArrayEntity {
 

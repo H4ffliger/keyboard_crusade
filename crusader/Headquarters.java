@@ -1,9 +1,9 @@
-package examplefuncsplayer;
+package crusader;
 
 import battlecode.common.*;
 
-import static examplefuncsplayer.Communication.*;
-import static examplefuncsplayer.RobotPlayer.*;
+import static crusader.Communication.*;
+import static crusader.RobotPlayer.*;
 
 public class Headquarters {
     //TODO: Do limits dynamically

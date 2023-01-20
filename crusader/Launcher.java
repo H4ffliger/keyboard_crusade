@@ -1,12 +1,12 @@
-package examplefuncsplayer;
+package crusader;
 
 import battlecode.common.*;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-import static examplefuncsplayer.Pathfinding.goToPosition;
-import static examplefuncsplayer.Communication.getHeadquarters;
+import static crusader.Pathfinding.goToPosition;
+import static crusader.Communication.getHeadquarters;
 
 public class Launcher {
 

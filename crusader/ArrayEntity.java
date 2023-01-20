@@ -1,9 +1,6 @@
-package examplefuncsplayer;
+package crusader;
 
 import battlecode.common.MapLocation;
-
-import java.util.Map;
-import java.util.Objects;
 
 public class ArrayEntity {
 
