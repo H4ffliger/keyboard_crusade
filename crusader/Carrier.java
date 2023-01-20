@@ -22,7 +22,7 @@ public class Carrier {
     private static final ArrayList<MapLocation> manaWells = new ArrayList<>();
 
     private static final ArrayList<WellEntity> mnWellEntities = new ArrayList<>();
-    private static int goal = 1;
+    private static int goal = 0;
 
     //TODO: change strategy to place anchor
     private static Integer exploreID;
@@ -40,7 +40,7 @@ public class Carrier {
                 rc.takeAnchor(homeHQ, Anchor.STANDARD);
                 goal = 3;
             } else {
-                if (rng.nextInt(3) == 0) {
+                if (rng.nextInt(2) == 0) {
                     goal = 4;
                 } else {
                     goal = 5;
@@ -211,7 +211,7 @@ public class Carrier {
 
     private static void goMining(RobotController rc, MapLocation me, MapLocation target) throws GameActionException {
         if (me.isAdjacentTo(target) || me.distanceSquaredTo(target) == 1) {
-            if (rc.canCollectResource(target, -1)) rc.collectResource(target, -1);
+            while (rc.canCollectResource(target, -1)) rc.collectResource(target, -1);
         } else {
             goToPosition(rc, target);
             rc.setIndicatorString("Move to nearest Well");
@@ -257,19 +257,9 @@ public class Carrier {
     }
 
     private static void goMining(RobotController rc, MapLocation me) throws GameActionException {
+        senseWellsAndAddNewOne(rc);
         WellInfo[] nearbyWells = rc.senseNearbyWells();
-        for (WellInfo well : nearbyWells) {
-            MapLocation wellLoc = well.getMapLocation();
-            if (!adWells.contains(wellLoc) || !manaWells.contains(wellLoc)) {
-                if (well.getResourceType() == ResourceType.ADAMANTIUM) {
-                    adWells.add(wellLoc);
-                    adWellEntities.add(new WellEntity(-1, wellLoc));
-                } else if (well.getResourceType() == ResourceType.MANA) {
-                    manaWells.add(wellLoc);
-                    mnWellEntities.add(new WellEntity(-1, wellLoc));
-                }
-            }
-        }
+
         if (nearbyWells.length > 0) {
             MapLocation nearestWell = nearbyWells[0].getMapLocation();
             goMining(rc, me, nearestWell);
