@@ -35,18 +35,44 @@ mapFieldID for example 9 or 16 for the amount of subfields of the map
             eOffsetY = rnd.nextInt(exploreSoftness * 2) - exploreSoftness;
             //System.out.println("Changed the eOffsetX: of " + mapFieldID + ": " + eOffsetX + " | Offset " + eOffsetY);
         }
-
-
         int tX = mapFieldID / 3 * mapW / 3 + mapSize + eOffsetX;
         int tY = mapFieldID % 3 * mapH / 3 + mapSize + eOffsetY;
         //System.out.println("mapFieldID: " + Integer.toString(mapFieldID) + " | tX: " + Integer.toString(tX) + " | tY" + Integer.toString(tY));
 
         senseInformation(rc);
         goToPosition(rc, tX, tY);
-
     }
 
-    static void senseInformation(RobotController rc) throws GameActionException {
+
+    static void protectHQ(RobotController rc, int spawnX,int spawnY, int protectionRange) throws GameActionException {
+
+        //Random exploring
+
+        if(rc.getLocation().distanceSquaredTo( new MapLocation(spawnX, spawnY)) > protectionRange){
+            goToPosition(rc, spawnX, spawnY);
+        }
+        else{
+            Random rnd = new Random(rc.getRoundNum() + spawnX + spawnY);
+            if (rc.getRoundNum() % exploreSoftness == 0) {
+                eOffsetX = rnd.nextInt(exploreSoftness * 2) - exploreSoftness;
+                eOffsetY = rnd.nextInt(exploreSoftness * 2) - exploreSoftness;
+                //System.out.println("Changed the eOffsetX: of " + mapFieldID + ": " + eOffsetX + " | Offset " + eOffsetY);
+            }
+            int tX = rc.getLocation().x + eOffsetX;
+            int tY = rc.getLocation().y + eOffsetY;
+            goToPosition(rc, tX, tY);
+        }
+        //System.out.println("mapFieldID: " + Integer.toString(mapFieldID) + " | tX: " + Integer.toString(tX) + " | tY" + Integer.toString(tY));
+        //senseInformation(rc);
+    }
+
+
+
+
+
+
+
+        static void senseInformation(RobotController rc) throws GameActionException {
         WellInfo[] wells = rc.senseNearbyWells();
         //System.out.println("Sensing information--");
         /*
