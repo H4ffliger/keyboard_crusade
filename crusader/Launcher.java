@@ -8,7 +8,7 @@ import java.util.Random;
 
 import static crusader.Pathfinding.goToPosition;
 import static crusader.Communication.getHeadquarters;
-import static crusader.Strategy.explore;
+import static crusader.Strategy.*;
 
 public class Launcher {
 
@@ -16,9 +16,15 @@ public class Launcher {
     private static ArrayList<HeadquarterEntity> hqLocations = new ArrayList<>();
     private static Integer exploreID;
     private static Integer botID;
+    private static Integer spawnX;
+    private static Integer spawnY;
+
+    private static MapLocation saveSpace;
 
     //For attacks and exploring
     private static Integer armyDivider = 2;
+
+    private static int protectForXMoves = 0;
 
 
     static void runLauncher(RobotController rc) throws GameActionException {
@@ -30,7 +36,13 @@ public class Launcher {
             System.out.println("Rnd: " + Integer.toString(exploreID));
             //Should return a somewhat unique number
             botID = rc.getRobotCount() + rc.getRoundNum();
-
+            spawnX = rc.getLocation().x;
+            spawnY = rc.getLocation().y;
+            saveSpace = rc.getLocation();
+            Direction d = new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2).directionTo(rc.getLocation());
+            for(int z = 0; z<10; z++){
+                saveSpace = saveSpace.add(d);
+            }
         }
 
         if(hqLocations.size()==0) {
@@ -78,12 +90,34 @@ public class Launcher {
             /*ToDo: Create function to check if we are dominating the center,
             currently just hardcode spreading, integrate communication for coordinated attack
              */
-            if(rc.getRoundNum() > 250 && rc.getRoundNum() < 450 ||
-                    rc.getRoundNum() > 700 && rc.getRoundNum() < 800 ||
-                    rc.getRoundNum() > 1100 && rc.getRoundNum() < 1400){
+
+            if(rc.getRoundNum()/10 + 10 > rc.getRobotCount() && rc.getRoundNum() < 600 && rc.getRoundNum() > 150 && protectForXMoves == 0) {
+                //Protect HQ, because the center is lost and we will save the robots
+                protectForXMoves = 300 -  (rc.getRoundNum()-100);
+            }
+
+            if(protectForXMoves > 0){
+                protectForXMoves --;
+                protectHQ(rc, saveSpace.x, saveSpace.y, 3);
+                rc.setIndicatorString("Protect HQ for " + Integer.toString(protectForXMoves) + "moves.");
+                if(protectForXMoves == 0){
+                    protectForXMoves = -1;
+                }
+            }
+            else if(protectForXMoves < 0){
+                protectForXMoves --;
+                attack(rc, exploreID);
+                rc.setIndicatorString("Attack explore");
+                if(protectForXMoves < -200){
+                    protectForXMoves = 0;
+                }
+            }
+            else if(rc.getRoundNum() > 450 && rc.getRoundNum() < 650 ||
+                    rc.getRoundNum() > 1000 && rc.getRoundNum() < 1100 ||
+                    rc.getRoundNum() > 1300 && rc.getRoundNum() < 1400){
                 if(botID % armyDivider == 1){
                     rc.setIndicatorString("Attack explore");
-                    explore(rc, exploreID);
+                    attack(rc, exploreID);
                 }
                 else{
                     rc.setIndicatorString("Attack center");
