@@ -1,4 +1,4 @@
-package betterEnemy;
+package exampleEnemy;
 
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
@@ -8,7 +8,7 @@ import battlecode.common.WellInfo;
 import java.util.ArrayList;
 import java.util.Random;
 
-import static betterEnemy.Pathfinding.goToPosition;
+import static exampleEnemy.Pathfinding.goToPosition;
 
 public class Strategy {
 
@@ -29,7 +29,6 @@ mapFieldID for example 9 or 16 for the amount of subfields of the map
 
 
         //Random exploring
-        //System.out.println("Round:" + rc.getRoundNum());
         Random rnd = new Random(rc.getRoundNum() + mapFieldID);
         if (rc.getRoundNum() % exploreSoftness == 0) {
             eOffsetX = rnd.nextInt(exploreSoftness * 2) - exploreSoftness;

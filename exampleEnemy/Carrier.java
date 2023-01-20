@@ -1,42 +1,54 @@
-package betterEnemy;
+package exampleEnemy;
 
 import battlecode.common.*;
 
 import java.util.*;
 
-import static betterEnemy.Pathfinding.goToPosition;
-import static betterEnemy.RobotPlayer.*;
-import static betterEnemy.Strategy.explore;
+import static exampleEnemy.Communication.*;
+import static exampleEnemy.Pathfinding.goToPosition;
+import static exampleEnemy.RobotPlayer.*;
+import static exampleEnemy.Strategy.explore;
 
 public class Carrier {
 
-    private static ArrayList<MapLocation> hqLocations = new ArrayList<>();
-    private static MapLocation homeHQ = new MapLocation(1, 1);
+    private static ArrayList<HeadquarterEntity> hqLocations = new ArrayList<>();
+    private static MapLocation homeHQ = null;
 
     private static ArrayList<MapLocation> adWells = new ArrayList<>();
+    private static ArrayList<WellEntity> adWellEntities = new ArrayList<>();
     private static ArrayList<MapLocation> manaWells = new ArrayList<>();
-    private static int goal = 1, globalIndex = 0;
+
+    private static ArrayList<WellEntity> mnWellEntities = new ArrayList<>();
+    private static int goal = 1;
 
     //TODO: change strategy to place anchor
     private static Integer exploreID;
 
     static void runCarrier(RobotController rc) throws GameActionException {
-        getImportantLocations(rc);
         if (turnCount == 1) initialisation(rc);
         MapLocation me = rc.getLocation();
+        if (turnCount % 2 == 0) {
+            //every second turn sense Wells
+            senseWellsAndAddNewOne(rc);
+        }
         if (goal == 0) {
             //find new strategy
             if (rc.canTakeAnchor(homeHQ, Anchor.STANDARD)) {
                 rc.takeAnchor(homeHQ, Anchor.STANDARD);
                 goal = 3;
             } else {
-                goal = 1;
+                if (rng.nextInt(3) == 0) {
+                    goal = 4;
+                } else {
+                    goal = 5;
+                }
             }
+
         } else if (goal == 1) {
             rc.setIndicatorString("I go mining");
-            goMining(rc, me);
+            goMining(rc, me, ResourceType.MANA);
 
-            if (rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR) == 40) {
+            if (getTotalResources(rc) == 40) {
                 goal = 2;
             }
         } else if (goal == 2) {
@@ -45,6 +57,18 @@ public class Carrier {
         } else if (goal == 3) {
             rc.setIndicatorString("Me place Anchor");
             placeAnchor(rc, me);
+        } else if (goal == 4) {
+            rc.setIndicatorString("Me mine Ad");
+            goMining(rc, me, ResourceType.ADAMANTIUM);
+            if (getTotalResources(rc) == 40) {
+                goal = 2;
+            }
+        } else if (goal == 5) {
+            rc.setIndicatorString("Me mine Mn");
+            goMining(rc, me, ResourceType.MANA);
+            if (getTotalResources(rc) == 40) {
+                goal = 2;
+            }
         } else {
             // Also try to move randomly.
             Direction dir = directions[rng.nextInt(directions.length)];
@@ -54,20 +78,28 @@ public class Carrier {
             System.out.println("Goal = something else");
         }
 
-
-        // Occasionally try out the carriers attack
-        /*if (rng.nextInt(20) == 1) {
-            RobotInfo[] enemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-            if (enemyRobots.length > 0) {
-                if (rc.canAttack(enemyRobots[0].location)) {
-                    rc.attack(enemyRobots[0].location);
-                }
-            }
-        }*/
-
-
     }
 
+    private static void senseWellsAndAddNewOne(RobotController rc) throws GameActionException {
+        WellInfo[] wellInfos = rc.senseNearbyWells();
+        getAllWells(rc);
+        for (WellInfo wellInfo : wellInfos) {
+            if (!manaWells.contains(wellInfo.getMapLocation())) {
+                manaWells.add(wellInfo.getMapLocation());
+                WellEntity addedEntity = new WellEntity(-1, wellInfo.getMapLocation());
+                addedEntity.setWellStatus(1);
+                mnWellEntities.add(addedEntity);
+                addWell(rc, addedEntity);
+            } else if (!adWells.contains(wellInfo.getMapLocation())) {
+                adWells.add(wellInfo.getMapLocation());
+                WellEntity addedEntity = new WellEntity(-1, wellInfo.getMapLocation());
+                addedEntity.setWellStatus(2);
+                adWellEntities.add(addedEntity);
+                addWell(rc, addedEntity);
+            }
+        }
+        tryWriteMessages(rc);
+    }
 
     //unused
     private static void placeAnchor(RobotController rc, MapLocation me) throws GameActionException {
@@ -76,7 +108,7 @@ public class Carrier {
             int[] islands = rc.senseNearbyIslands();
             Set<MapLocation> islandLocs = new HashSet<>();
             for (int id : islands) {
-                if (!rc.senseTeamOccupyingIsland(id).isPlayer()) {
+                if (rc.senseTeamOccupyingIsland(id) != rc.getTeam()) {
                     MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
                     islandLocs.addAll(Arrays.asList(thisIslandLocs));
                 }
@@ -115,15 +147,6 @@ public class Carrier {
 
     private static void returnToHQ(RobotController rc, MapLocation me) throws GameActionException {
         if (hqLocations != null) {
-            /*int minimalDistance = 100000;
-            MapLocation bestHQ = null;
-            for (MapLocation hq : hqLocations) {
-                int actualDistance = me.distanceSquaredTo(hq);
-                if (actualDistance < minimalDistance) {
-                    minimalDistance = actualDistance;
-                    bestHQ = hq;
-                }
-            }*/
             if (homeHQ != null) {
                 if (rc.canSenseRobotAtLocation(homeHQ) && me.isAdjacentTo(homeHQ)) {
                     if (rc.canTransferResource(homeHQ, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM))) {
@@ -144,6 +167,18 @@ public class Carrier {
                     rc.setIndicatorString("Move to HQ");
                 }
             } else {
+                int minimalDistance = 100000;
+                HeadquarterEntity bestHQ = null;
+                for (HeadquarterEntity hq : hqLocations) {
+                    int actualDistance = me.distanceSquaredTo(hq.getOwnLocation());
+                    if (actualDistance < minimalDistance) {
+                        minimalDistance = actualDistance;
+                        bestHQ = hq;
+                    }
+                }
+                if (bestHQ != null) {
+                    goToPosition(rc, bestHQ.getOwnLocation());
+                }
                 System.out.println("HomeHQ is null");
             }
 
@@ -153,19 +188,70 @@ public class Carrier {
 
     }
 
+    private static void goMining(RobotController rc, MapLocation me, MapLocation target) throws GameActionException {
+        if (me.isAdjacentTo(target) || me.distanceSquaredTo(target) == 1) {
+            if (rc.canCollectResource(target, -1)) rc.collectResource(target, -1);
+        } else {
+            goToPosition(rc, target);
+            rc.setIndicatorString("Move to nearest Well");
+        }
+    }
+
+    private static void goMining(RobotController rc, MapLocation me, ResourceType rt) throws GameActionException {
+        ArrayList<WellEntity> selectWells = null;
+        switch (rt) {
+            case NO_RESOURCE:
+                break;
+            case ADAMANTIUM:
+                selectWells = adWellEntities;
+                break;
+            case MANA:
+                selectWells = mnWellEntities;
+                break;
+            case ELIXIR:
+                break;
+        }
+        if (selectWells != null && selectWells.size() > 0) {
+            rc.setIndicatorString("Did find a well");
+            int minimalDistance = 100000;
+            WellEntity nearestWell = null;
+            for (WellEntity oneWell : selectWells) {
+                int actualDistance = me.distanceSquaredTo(oneWell.getOwnLocation());
+                if (actualDistance < minimalDistance) {
+                    minimalDistance = actualDistance;
+                    nearestWell = oneWell;
+                }
+            }
+            if (nearestWell != null) {
+                rc.setIndicatorString("Going to mine");
+                goMining(rc, me, nearestWell.getOwnLocation());
+            } else {
+                System.out.println("NearestWell is null");
+            }
+
+        } else {
+            rc.setIndicatorString("Didn't find Well of type: " + rt);
+            goMining(rc, me);
+        }
+    }
+
     private static void goMining(RobotController rc, MapLocation me) throws GameActionException {
         WellInfo[] nearbyWells = rc.senseNearbyWells();
+        for (WellInfo well : nearbyWells) {
+            MapLocation wellLoc = well.getMapLocation();
+            if (!adWells.contains(wellLoc) || !manaWells.contains(wellLoc)) {
+                if (well.getResourceType() == ResourceType.ADAMANTIUM) {
+                    adWells.add(wellLoc);
+                    adWellEntities.add(new WellEntity(-1, wellLoc));
+                } else if (well.getResourceType() == ResourceType.MANA) {
+                    manaWells.add(wellLoc);
+                    mnWellEntities.add(new WellEntity(-1, wellLoc));
+                }
+            }
+        }
         if (nearbyWells.length > 0) {
             MapLocation nearestWell = nearbyWells[0].getMapLocation();
-            if (me.isAdjacentTo(nearestWell) || me.distanceSquaredTo(nearestWell) == 1) {
-                if (rc.canCollectResource(nearestWell, -1)) {
-                    rc.collectResource(nearestWell, -1);
-                    rc.setIndicatorString("Collecting, now have, AD:" + rc.getResourceAmount(ResourceType.ADAMANTIUM) + " MN: " + rc.getResourceAmount(ResourceType.MANA) + " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
-                }
-            } else {
-                goToPosition(rc, nearestWell);
-                rc.setIndicatorString("Move to nearest Well");
-            }
+            goMining(rc, me, nearestWell);
 
         } else if (adWells.size() != 0 || manaWells.size() != 0) {
             int minimalDistance = 100000;
@@ -185,15 +271,7 @@ public class Carrier {
                 }
             }
             if (nearestWell != null) {
-                if (me.isAdjacentTo(nearestWell) || me.distanceSquaredTo(nearestWell) == 1) {
-                    if (rc.canCollectResource(nearestWell, -1)) {
-                        rc.collectResource(nearestWell, -1);
-                        rc.setIndicatorString("Collecting, now have, AD:" + rc.getResourceAmount(ResourceType.ADAMANTIUM) + " MN: " + rc.getResourceAmount(ResourceType.MANA) + " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
-                    }
-                } else {
-                    goToPosition(rc, nearestWell);
-                    rc.setIndicatorString("Move to nearest Well");
-                }
+                goMining(rc, me, nearestWell);
             } else {
                 System.out.println("NearestWell is null");
             }
@@ -210,7 +288,15 @@ public class Carrier {
     }
 
     private static void getImportantLocations(RobotController rc) throws GameActionException {
-        while (rc.readSharedArray(globalIndex) != 0) {
+        hqLocations = getHeadquarters(rc);
+        RobotInfo[] robots = rc.senseNearbyRobots();
+        for (RobotInfo robot : robots) {
+            if (robot.getTeam() == rc.getTeam() && robot.getType() == RobotType.HEADQUARTERS) {
+                homeHQ = robot.getLocation();
+                break;
+            }
+        }
+        /*while (rc.readSharedArray(globalIndex) != 0) {
             int information = rc.readSharedArray(globalIndex);
             String informationString = Integer.toString(information);
             String firstBitString = informationString.substring(0, 1);
@@ -228,18 +314,17 @@ public class Carrier {
             }
             //System.out.println("Set HQ to " + hqLocationString);
             globalIndex++;
-        }
+        }*/
     }
 
-    private static void initialisation(RobotController rc) {
-        int minimalDistance = 10;
-        for (MapLocation hq : hqLocations) {
-            int actualDistance = rc.getLocation().distanceSquaredTo(hq);
-            if (actualDistance < minimalDistance) {
-                homeHQ = hq;
-                System.out.println("Found Home HQ");
-                break;
-            }
-        }
+    private static void initialisation(RobotController rc) throws GameActionException {
+        getImportantLocations(rc);
+    }
+
+    static int getTotalResources(RobotController rc) {
+        return rc.getResourceAmount(ResourceType.ADAMANTIUM)
+                + rc.getResourceAmount(ResourceType.MANA)
+                + rc.getResourceAmount(ResourceType.ELIXIR);
     }
 }
+

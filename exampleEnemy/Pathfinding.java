@@ -1,9 +1,10 @@
-package betterEnemy;
+package exampleEnemy;
 
-import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
+
+import static exampleEnemy.Pathing.moveTowards;
 
 public class Pathfinding {
 
@@ -25,13 +26,11 @@ public class Pathfinding {
     }
 
     public static void goToPosition (RobotController rc, MapLocation target) throws GameActionException{
-
-        MapLocation currentLocation = new MapLocation(rc.getLocation().x, rc.getLocation().y);
-
+        moveTowards(rc,target);
+        /*
+        MapLocation currentLocation = rc.getLocation();
         Direction oTDirection = currentLocation.directionTo(target);
         Direction tDirection;
-
-
         if(rc.canMove(oTDirection)) {
             rc.move(oTDirection);
         }
@@ -50,7 +49,7 @@ public class Pathfinding {
                     rc.move(tDirection);
                 }
             }
-        }
+        }*/
     }
 
 

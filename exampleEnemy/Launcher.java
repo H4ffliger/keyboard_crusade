@@ -1,17 +1,17 @@
-package betterEnemy;
+package exampleEnemy;
 
 import battlecode.common.*;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-import static betterEnemy.Pathfinding.goToPosition;
-import static betterEnemy.Strategy.explore;
+import static exampleEnemy.Communication.getHeadquarters;
+import static exampleEnemy.Pathfinding.goToPosition;
 
 public class Launcher {
 
     //static int radioArray;
-    private static ArrayList<MapLocation> hqLocations = new ArrayList<>();
+    private static ArrayList<HeadquarterEntity> hqLocations = new ArrayList<>();
     private static Integer exploreID;
 
 
@@ -21,19 +21,12 @@ public class Launcher {
         if (exploreID == null) {
             //ToDo: Change and coordinate with HQ shared array
             exploreID = new Random().nextInt(9);
-            //System.out.println("Rnd: " + exploreID);
+            System.out.println("Rnd: " + Integer.toString(exploreID));
         }
+
         if(hqLocations.size()==0) {
             //Set the local hq Positions
-            for (int i = 0; i < 4; i++) {
-                String hqLocationString = null;
-                hqLocationString = Integer.toString(rc.readSharedArray(i));
-                if (!hqLocationString.equals("0")) {
-                    int dx = Integer.parseInt(hqLocationString.substring(1, 3));
-                    int dy = Integer.parseInt(hqLocationString.substring(3, 5));
-                    hqLocations.add(new MapLocation(dx, dy));
-                }
-            }
+            hqLocations=getHeadquarters(rc);
         }
 
         // Try to attack someone
@@ -41,7 +34,13 @@ public class Launcher {
         Team opponent = rc.getTeam().opponent();
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
         if (enemies.length > 0) {
-            MapLocation toAttack = enemies[0].location;
+            //Attack first Launcher
+            RobotInfo target=enemies[0];
+            for(RobotInfo info :enemies) {
+                target=info;
+                if (info.getType()==RobotType.LAUNCHER||info.getType()==RobotType.DESTABILIZER) break;
+            }
+            MapLocation toAttack = target.location;
             if (rc.canAttack(toAttack)) {
                 rc.setIndicatorString("Attacking");
                 rc.attack(toAttack);
@@ -53,17 +52,22 @@ public class Launcher {
         //Move with the pathfinding module
         //ToDo: Temporary exploring function for testing
         try {
-            if (rc.getRoundNum() < 200) {
+           /* if (rc.getRoundNum() < 200) {
                 explore(rc, exploreID);
 
-            } else {
+            } else {*/
+            //defendHQ(rc);
                 goToPosition(rc, rc.getMapHeight()/2,rc.getMapWidth()/2);
                 //returnToHomeBase(rc, hqLocations.get(0).x, hqLocations.get(0).y);
 
-            }
+            //}
         } catch (GameActionException e) {
             System.out.println(rc.getType() + " Exception");
             e.printStackTrace();
         }
+    }
+
+    private static void defendHQ(RobotController rc) throws GameActionException{
+
     }
 }

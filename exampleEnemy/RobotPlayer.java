@@ -1,4 +1,4 @@
-package betterEnemy;
+package exampleEnemy;
 
 import battlecode.common.Clock;
 import battlecode.common.Direction;
@@ -7,9 +7,8 @@ import battlecode.common.RobotController;
 
 import java.util.Random;
 
-import static betterEnemy.Carrier.runCarrier;
-import static betterEnemy.Headquarters.runHeadquarters;
-import static betterEnemy.Launcher.runLauncher;
+import static exampleEnemy.Carrier.runCarrier;
+import static exampleEnemy.Headquarters.runHeadquarters;
 
 /**
  * RobotPlayer is the class that describes your main robot strategy.
@@ -57,7 +56,7 @@ public strictfp class RobotPlayer {
 
         // Hello world! Standard output is very useful for debugging.
         // Everything you say here will be directly viewable in your terminal when you run a match!
-        System.out.println("I'm a " + rc.getType() + " and I just got created! I have health " + rc.getHealth());
+        System.out.println("I'm a " + rc.getType());
 
         // You can also use indicators to save debug notes in replays.
         rc.setIndicatorString("Hello world!");
@@ -79,7 +78,7 @@ public strictfp class RobotPlayer {
                 switch (rc.getType()) {
                     case HEADQUARTERS:  runHeadquarters(rc);  break;
                     case CARRIER:      runCarrier(rc);   break;
-                    case LAUNCHER: runLauncher(rc); break;
+                    case LAUNCHER: LauncherStrategy.runLauncher(rc); break;
                     case BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
                     case DESTABILIZER: // You might want to give them a try!
                     case AMPLIFIER:       break;
