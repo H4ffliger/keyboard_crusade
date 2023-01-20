@@ -11,14 +11,17 @@ import static crusader.Strategy.explore;
 
 public class Carrier {
 
+    private static final int ADMANTIUM_WELL_STATUS = 2;
+    private static final int MANA_WELL_STATUS = 1;
+
     private static ArrayList<HeadquarterEntity> hqLocations = new ArrayList<>();
     private static MapLocation homeHQ = null;
 
-    private static ArrayList<MapLocation> adWells = new ArrayList<>();
-    private static ArrayList<WellEntity> adWellEntities = new ArrayList<>();
-    private static ArrayList<MapLocation> manaWells = new ArrayList<>();
+    private static final ArrayList<MapLocation> adWells = new ArrayList<>();
+    private static final ArrayList<WellEntity> adWellEntities = new ArrayList<>();
+    private static final ArrayList<MapLocation> manaWells = new ArrayList<>();
 
-    private static ArrayList<WellEntity> mnWellEntities = new ArrayList<>();
+    private static final ArrayList<WellEntity> mnWellEntities = new ArrayList<>();
     private static int goal = 1;
 
     //TODO: change strategy to place anchor
@@ -82,23 +85,41 @@ public class Carrier {
 
     private static void senseWellsAndAddNewOne(RobotController rc) throws GameActionException {
         WellInfo[] wellInfos = rc.senseNearbyWells();
-        getAllWells(rc);
+        ArrayList<WellEntity> getWellEntities = getAllWells(rc);
+        if (!(getWellEntities.size()==manaWells.size()+adWells.size())) {
+            updateWellList(getWellEntities);
+
+        }
         for (WellInfo wellInfo : wellInfos) {
-            if (!manaWells.contains(wellInfo.getMapLocation())) {
+            if (!manaWells.contains(wellInfo.getMapLocation())&&wellInfo.getResourceType()==ResourceType.MANA) {
                 manaWells.add(wellInfo.getMapLocation());
                 WellEntity addedEntity = new WellEntity(-1, wellInfo.getMapLocation());
-                addedEntity.setWellStatus(1);
+                addedEntity.setWellStatus(MANA_WELL_STATUS);
                 mnWellEntities.add(addedEntity);
                 addWell(rc, addedEntity);
-            } else if (!adWells.contains(wellInfo.getMapLocation())) {
+            } else if (!adWells.contains(wellInfo.getMapLocation())&&wellInfo.getResourceType()==ResourceType.ADAMANTIUM) {
                 adWells.add(wellInfo.getMapLocation());
                 WellEntity addedEntity = new WellEntity(-1, wellInfo.getMapLocation());
-                addedEntity.setWellStatus(2);
+                addedEntity.setWellStatus(ADMANTIUM_WELL_STATUS);
                 adWellEntities.add(addedEntity);
                 addWell(rc, addedEntity);
             }
         }
         tryWriteMessages(rc);
+    }
+
+    private static void updateWellList(ArrayList<WellEntity> getWellEntities) {
+        for(WellEntity wellEntity:getWellEntities) {
+            if (wellEntity.getWellStatus()==MANA_WELL_STATUS) {
+                mnWellEntities.add(wellEntity);
+                manaWells.add(wellEntity.getOwnLocation());
+            }
+
+            else if (wellEntity.getWellStatus()==ADMANTIUM_WELL_STATUS) {
+                adWellEntities.add(wellEntity);
+                adWells.add(wellEntity.getOwnLocation());
+            }
+        }
     }
 
     //unused
@@ -296,25 +317,9 @@ public class Carrier {
                 break;
             }
         }
-        /*while (rc.readSharedArray(globalIndex) != 0) {
-            int information = rc.readSharedArray(globalIndex);
-            String informationString = Integer.toString(information);
-            String firstBitString = informationString.substring(0, 1);
-            String xString = informationString.substring(1, 3);
-            String yString = informationString.substring(3, 5);
-            int firstBit = Integer.parseInt(firstBitString);
-            int dx = Integer.parseInt(xString);
-            int dy = Integer.parseInt(yString);
-            if (firstBit == 1) {
-                hqLocations.add(new MapLocation(dx, dy));
-            } else if (firstBit == 2) {
-                adWells.add(new MapLocation(dx, dy));
-            } else if (firstBit == 3) {
-                manaWells.add(new MapLocation(dx, dy));
-            }
-            //System.out.println("Set HQ to " + hqLocationString);
-            globalIndex++;
-        }*/
+        ArrayList<WellEntity> newWellEntities = getAllWells(rc);
+        updateWellList(newWellEntities);
+
     }
 
     private static void initialisation(RobotController rc) throws GameActionException {
