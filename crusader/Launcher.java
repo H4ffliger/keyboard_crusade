@@ -1,18 +1,24 @@
 package crusader;
 
 import battlecode.common.*;
+import scala.Int;
 
 import java.util.ArrayList;
 import java.util.Random;
 
 import static crusader.Pathfinding.goToPosition;
 import static crusader.Communication.getHeadquarters;
+import static crusader.Strategy.explore;
 
 public class Launcher {
 
     //static int radioArray;
     private static ArrayList<HeadquarterEntity> hqLocations = new ArrayList<>();
     private static Integer exploreID;
+    private static Integer botID;
+
+    //For attacks and exploring
+    private static Integer armyDivider = 2;
 
 
     static void runLauncher(RobotController rc) throws GameActionException {
@@ -22,6 +28,9 @@ public class Launcher {
             //ToDo: Change and coordinate with HQ shared array
             exploreID = new Random().nextInt(9);
             System.out.println("Rnd: " + Integer.toString(exploreID));
+            //Should return a somewhat unique number
+            botID = rc.getRobotCount() + rc.getRoundNum();
+
         }
 
         if(hqLocations.size()==0) {
@@ -53,20 +62,42 @@ public class Launcher {
                 rc.setIndicatorString("Attacking");
                 rc.attack(toAttack);
             } else {
-                goToPosition(rc,toAttack);
+                //goToPosition(rc,toAttack);
             }
         }
 
         //Move with the pathfinding module
         //ToDo: Temporary exploring function for testing
         try {
-           /* if (rc.getRoundNum() < 200) {
+           /*if (rc.getRoundNum() < 200) {
                 explore(rc, exploreID);
 
             } else {*/
             //defendHQ(rc);
+
+            /*ToDo: Create function to check if we are dominating the center,
+            currently just hardcode spreading, integrate communication for coordinated attack
+             */
+            if(rc.getRoundNum() > 250 && rc.getRoundNum() < 450 ||
+                    rc.getRoundNum() > 700 && rc.getRoundNum() < 800 ||
+                    rc.getRoundNum() > 1100 && rc.getRoundNum() < 1400){
+                if(botID % armyDivider == 1){
+                    rc.setIndicatorString("Attack explore");
+                    explore(rc, exploreID);
+                }
+                else{
+                    rc.setIndicatorString("Attack center");
+                    goToPosition(rc, rc.getMapHeight()/2,rc.getMapWidth()/2);
+                }
+
+            }
+            else{
+                rc.setIndicatorString("Attack center");
                 goToPosition(rc, rc.getMapHeight()/2,rc.getMapWidth()/2);
-                //returnToHomeBase(rc, hqLocations.get(0).x, hqLocations.get(0).y);
+            }
+
+
+            //returnToHomeBase(rc, hqLocations.get(0).x, hqLocations.get(0).y);
 
             //}
         } catch (GameActionException e) {
