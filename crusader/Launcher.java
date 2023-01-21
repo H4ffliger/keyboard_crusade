@@ -110,6 +110,7 @@ public class Launcher {
 
             /*ToDo: Create function to check if we are dominating the center,
             currently just hardcode spreading, integrate communication for coordinated attack
+            ToDO: There are currently false positive retreats
              */
 
             if(rc.getRoundNum()/10 + 15 > rc.getRobotCount() && rc.getRoundNum() < 600 && rc.getRoundNum() > 150 && protectForXMoves == 0) {

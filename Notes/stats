@@ -5,3 +5,11 @@ Testing on all maps
 Without HQ optimization:
 Crusader 		19
 exampleenemy	13
+
+With HQ optimization:
+Crusader 		20
+exampleenemy	12
+
+Swapped:
+Crusader		20
+exampleenemy	12
