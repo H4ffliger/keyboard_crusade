@@ -78,10 +78,10 @@ public class Launcher {
                 }
             }
 
+            //If there are no launchers attack Carriers
             if(target == enemies[0] && target.getType() != RobotType.LAUNCHER){
                 for(RobotInfo info :enemies) {
 
-                    //Attack Launcher with lowest health first.
                     if (info.getType()==RobotType.CARRIER||info.getType()==RobotType.AMPLIFIER||info.getType()==RobotType.BOOSTER) {
                         if(info.getHealth() < lowestHealth) {
                             lowestHealth = info.getHealth();
