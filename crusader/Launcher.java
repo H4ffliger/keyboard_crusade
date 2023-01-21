@@ -142,13 +142,13 @@ public class Launcher {
                 }
                 else{
                     rc.setIndicatorString("Attack center");
-                    goToPosition(rc, rc.getMapHeight()/2,rc.getMapWidth()/2);
+                    goToPosition(rc, rc.getMapWidth()/2,rc.getMapHeight()/2);
                 }
 
             }
             else{
                 rc.setIndicatorString("Attack center");
-                goToPosition(rc, rc.getMapHeight()/2,rc.getMapWidth()/2);
+                goToPosition(rc, rc.getMapWidth()/2,rc.getMapHeight()/2);
             }
 
 
