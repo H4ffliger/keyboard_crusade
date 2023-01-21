@@ -77,6 +77,19 @@ public class Launcher {
                     }
                 }
             }
+
+            if(target == enemies[0] && target.getType() != RobotType.LAUNCHER){
+                for(RobotInfo info :enemies) {
+
+                    //Attack Launcher with lowest health first.
+                    if (info.getType()==RobotType.CARRIER||info.getType()==RobotType.AMPLIFIER||info.getType()==RobotType.BOOSTER) {
+                        if(info.getHealth() < lowestHealth) {
+                            lowestHealth = info.getHealth();
+                            target = info;
+                        }
+                    }
+                }
+            }
             MapLocation toAttack = target.location;
             if (rc.canAttack(toAttack)) {
                 rc.setIndicatorString("Attacking");
