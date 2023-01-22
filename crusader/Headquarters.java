@@ -41,20 +41,25 @@ public class Headquarters {
             // Let's try to build a carrier.
             //rc.setIndicatorString("Trying to build a carrier");
             Direction tempSpawnDirection = centerDirection;
+            int tries = 0;
+
+            while (tries < 20){
+                tries ++;
+                if (rc.canBuildRobot(RobotType.LAUNCHER, rc.getLocation().add(centerDirection).add(tempSpawnDirection))) {
+                    rc.buildRobot(RobotType.LAUNCHER, rc.getLocation().add(centerDirection).add(tempSpawnDirection));
+                }
+                else if(rc.canBuildRobot(RobotType.LAUNCHER, rc.getLocation().add(tempSpawnDirection))){
+                    rc.buildRobot(RobotType.LAUNCHER, rc.getLocation().add(tempSpawnDirection));
+                }
+                tempSpawnDirection = tempSpawnDirection.rotateRight();
+            }
 
             for (Direction dirLoop : Direction.allDirections()) {
 
                 MapLocation buildPlace = rc.getLocation().add(dirLoop);
 
-                if (rc.canBuildRobot(RobotType.LAUNCHER, rc.getLocation().add(centerDirection).add(tempSpawnDirection))) {
-                    rc.buildRobot(RobotType.LAUNCHER, rc.getLocation().add(centerDirection).add(tempSpawnDirection));
-                    tempSpawnDirection = tempSpawnDirection.rotateRight();
-                }
-                else if(rc.canBuildRobot(RobotType.LAUNCHER, rc.getLocation().add(tempSpawnDirection))){
-                    rc.buildRobot(RobotType.LAUNCHER, rc.getLocation().add(tempSpawnDirection));
-                    tempSpawnDirection = tempSpawnDirection.rotateRight();
-                }
-                else if(rc.canBuildRobot(RobotType.CARRIER, buildPlace)) {
+
+                if(rc.canBuildRobot(RobotType.CARRIER, buildPlace)) {
                     rc.buildRobot(RobotType.CARRIER, buildPlace);
                 }
             }
