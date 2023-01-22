@@ -13,3 +13,14 @@ exampleenemy	12
 Swapped:
 Crusader		20
 exampleenemy	12
+
+With HQ spawn optimization
+Crusader 		22
+exampleenemy	11
+
+With dynamic fallback:
+Crusader 		26
+exampleenemy	07
+With better spawn set:
+Crusader 		28
+exampleenemy	05

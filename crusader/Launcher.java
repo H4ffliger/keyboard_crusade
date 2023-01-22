@@ -113,7 +113,7 @@ public class Launcher {
             ToDO: There are currently false positive retreats
              */
 
-            if(rc.getRoundNum()/10 + 15 > rc.getRobotCount() && rc.getRoundNum() < 600 && rc.getRoundNum() > 150 && protectForXMoves == 0) {
+            if(rc.getRoundNum()/10  +(rc.getMapWidth()+rc.getMapHeight())/10 > rc.getRobotCount() && rc.getRoundNum() < 600 && rc.getRoundNum() > 150 && protectForXMoves == 0) {
                 //Protect HQ, because the center is lost and we will save the robots
                 protectForXMoves = 300 -  (rc.getRoundNum()-100);
             }
@@ -149,7 +149,7 @@ public class Launcher {
                     attack(rc, exploreID);
                 }
                 else if(botID % armyDivider == 2){
-                    System.out.println("TTTT");
+                    //System.out.println("TTTT");
                     attack(rc, enemySpace.x, enemySpace.y);
                     rc.setIndicatorString("Attack enemy space at X: " +
                             Integer.toString(enemySpace.x) + " Y: " + Integer.toString(enemySpace.y));

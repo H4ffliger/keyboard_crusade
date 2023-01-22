@@ -8,11 +8,15 @@ import static crusader.RobotPlayer.*;
 public class Headquarters {
     //TODO: Do limits dynamically
     //TODO: Make better strategy
+    private static Direction centerDirection;
 
     static void runHeadquarters(RobotController rc) throws GameActionException {
+
         if (turnCount == 1) {
             writeLocationToArray(rc);
             usageOfFirstDistance(rc);
+
+            centerDirection = rc.getLocation().directionTo(new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2));
 
         } else {
             updateStatus(rc);
@@ -32,14 +36,26 @@ public class Headquarters {
                 //rc.setIndicatorString("Building anchor! " + rc.getAnchor());
             }
 
+
+
             // Let's try to build a carrier.
             //rc.setIndicatorString("Trying to build a carrier");
+            Direction tempSpawnDirection = centerDirection;
+
             for (Direction dirLoop : Direction.allDirections()) {
+
                 MapLocation buildPlace = rc.getLocation().add(dirLoop);
-                if ((rc.canBuildRobot(RobotType.CARRIER, buildPlace))) {
+
+                if (rc.canBuildRobot(RobotType.LAUNCHER, rc.getLocation().add(centerDirection).add(tempSpawnDirection))) {
+                    rc.buildRobot(RobotType.LAUNCHER, rc.getLocation().add(centerDirection).add(tempSpawnDirection));
+                    tempSpawnDirection = tempSpawnDirection.rotateRight();
+                }
+                else if(rc.canBuildRobot(RobotType.LAUNCHER, rc.getLocation().add(tempSpawnDirection))){
+                    rc.buildRobot(RobotType.LAUNCHER, rc.getLocation().add(tempSpawnDirection));
+                    tempSpawnDirection = tempSpawnDirection.rotateRight();
+                }
+                else if(rc.canBuildRobot(RobotType.CARRIER, buildPlace)) {
                     rc.buildRobot(RobotType.CARRIER, buildPlace);
-                } else if (rc.canBuildRobot(RobotType.LAUNCHER, buildPlace)) {
-                    rc.buildRobot(RobotType.LAUNCHER, buildPlace);
                 }
             }
         }
