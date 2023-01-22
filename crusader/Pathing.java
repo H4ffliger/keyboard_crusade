@@ -1,9 +1,6 @@
 package crusader;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 public class Pathing {
     // Basic bug nav - Bug 0
@@ -19,6 +16,26 @@ public class Pathing {
         }
         Direction d = rc.getLocation().directionTo(target);
         if (rc.canMove(d)) {
+
+            RobotInfo tRinfo[] = rc.senseNearbyRobots(14, rc.getTeam().opponent());
+            for (RobotInfo robot: tRinfo) {
+                if(robot.getType().equals(RobotType.HEADQUARTERS)){
+                    if(robot.getLocation().distanceSquaredTo(rc.getLocation())< 12) {
+                        Direction retreatFromHQ = robot.getLocation().directionTo(rc.getLocation());
+                        if (rc.canMove(retreatFromHQ)) {
+                            rc.move(retreatFromHQ);
+                            return;
+                        } else if (rc.canMove(retreatFromHQ.rotateRight())) {
+                            rc.move(retreatFromHQ.rotateRight());
+                            return;
+
+                        } else if (rc.canMove(retreatFromHQ.rotateLeft())) {
+                            rc.move(retreatFromHQ.rotateLeft());
+                            return;
+                        }
+                    }
+                }
+            }
             rc.move(d);
             currentDirection = null; // there is no obstacle we're going around
         } else {
