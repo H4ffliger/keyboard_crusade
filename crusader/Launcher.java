@@ -9,6 +9,7 @@ import java.util.Random;
 
 import static crusader.Pathfinding.goToPosition;
 import static crusader.Communication.getHeadquarters;
+import static crusader.Pathing.moveTowards;
 import static crusader.Strategy.*;
 
 public class Launcher {
@@ -34,6 +35,11 @@ public class Launcher {
     private static int getEarlyGameRushHQCheck;
 
     private static boolean campFlg = false;
+
+    private static boolean protectHomeFlg = false;
+
+    private static MapLocation toAttack;
+    private static int toAttackFollowCooldown = 0;
 
 
     static void runLauncher(RobotController rc) throws GameActionException {
@@ -100,10 +106,11 @@ public class Launcher {
                     }
                 }
             }
-            MapLocation toAttack = target.location;
+            toAttack = target.location;
             if (rc.canAttack(toAttack)) {
                 rc.setIndicatorString("Attacking");
                 rc.attack(toAttack);
+                toAttackFollowCooldown =3;
             } else {
                 //goToPosition(rc,toAttack);
             }
@@ -124,9 +131,9 @@ public class Launcher {
             ToDO: There are currently false positive retreats
              */
 
-            if(rc.getRoundNum() < 600 && rc.senseNearbyRobots(20, rc.getTeam()).length > 2+(rc.getMapHeight()+rc.getMapWidth())/20  && alive > 10 && earlyGameRush == 0/*|| (rc.getRoundNum() < 10 && earlyGameRush == 0)*/){
+            if(rc.getRoundNum() < 1000 && rc.senseNearbyRobots(20, rc.getTeam()).length > 2+(rc.getMapHeight()+rc.getMapWidth())/20  && alive > 10 && earlyGameRush == 0/*|| (rc.getRoundNum() < 10 && earlyGameRush == 0)*/ && protectHomeFlg == false){
                 earlyGameRush = 300 + (rc.getMapHeight()+rc.getMapWidth())*2;
-                getEarlyGameRushHQCheck = 10+(rc.getMapWidth()+ rc.getMapHeight())/3;
+                getEarlyGameRushHQCheck = 20+(rc.getMapWidth()+ rc.getMapHeight())/2;
                 rc.setIndicatorString("Rush decision");
             }
             //Early rush
@@ -134,10 +141,13 @@ public class Launcher {
                 if(earlyGameRush == 150){
                     getEarlyGameRushHQCheck = 10+(rc.getMapWidth()+ rc.getMapHeight())/3;
                 }
-                getEarlyGameRushHQCheck --;
-                if(getEarlyGameRushHQCheck <= 0){
-                    earlyGameRush -= 10;
+                if(campFlg == false){
+                    getEarlyGameRushHQCheck --;
+                    if(getEarlyGameRushHQCheck <= 0){
+                        earlyGameRush -= 10;
+                    }
                 }
+
                 if(campFlg == false){
                     earlyGameRush --;
                 }
@@ -147,7 +157,7 @@ public class Launcher {
                     for (RobotInfo robot: tRinfo) {
                         if(robot.getType().equals(RobotType.HEADQUARTERS)){
                             if(robot.getLocation().distanceSquaredTo(rc.getLocation())< 13) {
-                                Direction retreatFromHQ = robot.getLocation().directionTo(rc.getLocation());
+                                System.out.println("camping");
                                 getEarlyGameRushHQCheck = 30;
                                 campFlg = true;
                             }
@@ -205,8 +215,8 @@ public class Launcher {
             }
 
              */
-            else if(rc.getRoundNum() > 900 && rc.getRoundNum() < 1500 ||
-                    rc.getRoundNum() > 1900 && rc.getRoundNum() < 2000){
+            else if(rc.getRoundNum() > 1200 && rc.getRoundNum() < 1500 ||
+                    rc.getRoundNum() > 1800 && rc.getRoundNum() < 2000){
                 if(botID % armyDivider >= 3){
                     rc.setIndicatorString("Attack explore");
                     attack(rc, exploreID);
@@ -225,7 +235,14 @@ public class Launcher {
                         }
                         else{
                             rc.setIndicatorString("Protecting Home");
-                            attack(rc, spawnX, spawnY, 6);
+                            protectHomeFlg = true;
+                            toAttackFollowCooldown --;
+                            if(toAttackFollowCooldown > 0){
+                                moveTowards(rc, toAttack);
+                            }
+                            else {
+                                attack(rc, spawnX, spawnY, 6);
+                            }
                         }
                     }
                     else{
@@ -244,7 +261,14 @@ public class Launcher {
                     }
                     else{
                         rc.setIndicatorString("Protecting Home");
-                        attack(rc, spawnX, spawnY, 6);
+                        protectHomeFlg = true;
+                        toAttackFollowCooldown --;
+                        if(toAttackFollowCooldown > 0){
+                            moveTowards(rc, toAttack);
+                        }
+                        else {
+                            attack(rc, spawnX, spawnY, 6);
+                        }
                     }
                 }
                 else{
