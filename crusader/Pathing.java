@@ -17,7 +17,7 @@ public class Pathing {
         Direction d = rc.getLocation().directionTo(target);
         if (rc.canMove(d)) {
 
-            RobotInfo tRinfo[] = rc.senseNearbyRobots(15, rc.getTeam().opponent());
+            RobotInfo[] tRinfo = rc.senseNearbyRobots(15, rc.getTeam().opponent());
             for (RobotInfo robot: tRinfo) {
                 if(robot.getType().equals(RobotType.HEADQUARTERS)){
                     if(robot.getLocation().distanceSquaredTo(rc.getLocation())< 13) {
