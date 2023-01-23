@@ -80,7 +80,22 @@ mapFieldID for example 9 or 16 for the amount of subfields of the map
         senseInformation(rc);
         goToPosition(rc, tX, tY);
     }
+    static void attack(RobotController rc, int tX, int tY,int softness) throws GameActionException {
+        exploreSoftness = softness;
+        //Random exploring
+        Random rnd = new Random(rc.getRoundNum());
+        if (rc.getRoundNum() % exploreSoftness == 0) {
+            eOffsetX = rnd.nextInt(exploreSoftness * 2) - exploreSoftness;
+            eOffsetY = rnd.nextInt(exploreSoftness * 2) - exploreSoftness;
+            //System.out.println("Changed the eOffsetX: of " + mapFieldID + ": " + eOffsetX + " | Offset " + eOffsetY);
+        }
+        tX =  tX + eOffsetX;
+        tY =  tY + eOffsetY;
+        //System.out.println("mapFieldID: " + Integer.toString(mapFieldID) + " | tX: " + Integer.toString(tX) + " | tY" + Integer.toString(tY));
 
+        senseInformation(rc);
+        goToPosition(rc, tX, tY);
+    }
 
 
 

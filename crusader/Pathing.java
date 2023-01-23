@@ -17,10 +17,10 @@ public class Pathing {
         Direction d = rc.getLocation().directionTo(target);
         if (rc.canMove(d)) {
 
-            RobotInfo tRinfo[] = rc.senseNearbyRobots(14, rc.getTeam().opponent());
+            RobotInfo tRinfo[] = rc.senseNearbyRobots(15, rc.getTeam().opponent());
             for (RobotInfo robot: tRinfo) {
                 if(robot.getType().equals(RobotType.HEADQUARTERS)){
-                    if(robot.getLocation().distanceSquaredTo(rc.getLocation())< 12) {
+                    if(robot.getLocation().distanceSquaredTo(rc.getLocation())< 13) {
                         Direction retreatFromHQ = robot.getLocation().directionTo(rc.getLocation());
                         if (rc.canMove(retreatFromHQ)) {
                             rc.move(retreatFromHQ);
@@ -36,7 +36,9 @@ public class Pathing {
                     }
                 }
             }
-            rc.move(d);
+            if(rc.canMove(d)) {
+                rc.move(d);
+            }
             currentDirection = null; // there is no obstacle we're going around
         } else {
             // Going around some obstacle: can't move towards d because there's an obstacle there

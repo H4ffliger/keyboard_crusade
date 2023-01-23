@@ -20,6 +20,8 @@ public class Launcher {
     private static Integer spawnX;
     private static Integer spawnY;
 
+    private static Integer alive = 0;
+
     private static MapLocation saveSpace;
     private static MapLocation enemySpace;
 
@@ -28,6 +30,9 @@ public class Launcher {
 
     private static int protectForXMoves = 0;
 
+    private static int earlyGameRush = 0;
+    private static int getEarlyGameRushHQCheck;
+
 
     static void runLauncher(RobotController rc) throws GameActionException {
 
@@ -35,19 +40,21 @@ public class Launcher {
         if (exploreID == null) {
             //ToDo: Change and coordinate with HQ shared array
             exploreID = new Random().nextInt(9);
-            System.out.println("Rnd: " + Integer.toString(exploreID));
+            //System.out.println("Rnd: " + Integer.toString(exploreID));
             //Should return a somewhat unique number
             botID = rc.getRobotCount() + rc.getRoundNum();
             spawnX = rc.getLocation().x;
             spawnY = rc.getLocation().y;
             saveSpace = rc.getLocation();
             Direction dS = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2).directionTo(rc.getLocation());
-            Direction dE = rc.getLocation().directionTo(new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2));
             for (int z = 0; z < 10; z++) {
                 saveSpace = saveSpace.add(dS);
             }
+            MapLocation tempLocation = rc.getLocation();
             enemySpace = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);
             for (int z = rc.getMapHeight() / 4 + rc.getMapWidth() / 4; z >= 0; z--) {
+                Direction dE = tempLocation.directionTo(new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2));
+                tempLocation= tempLocation.add(dE);
                 enemySpace = enemySpace.add(dE);
             }
         }
@@ -57,6 +64,7 @@ public class Launcher {
             //Set the local hq Positions
             hqLocations=getHeadquarters(rc);
         }
+
 
         // Try to attack someone
         int radius = rc.getType().actionRadiusSquared;
@@ -102,6 +110,7 @@ public class Launcher {
         //Move with the pathfinding module
         //ToDo: Temporary exploring function for testing
         try {
+            alive ++;
            /*if (rc.getRoundNum() < 200) {
                 explore(rc, exploreID);
 
@@ -113,14 +122,62 @@ public class Launcher {
             ToDO: There are currently false positive retreats
              */
 
-            if(rc.getRoundNum()/10  +(rc.getMapWidth()+rc.getMapHeight())/10 > rc.getRobotCount() && rc.getRoundNum() < 600 && rc.getRoundNum() > 150 && protectForXMoves == 0) {
+            if(rc.getRoundNum() < 600 && rc.senseNearbyRobots(20, rc.getTeam()).length > 2+(rc.getMapHeight()+rc.getMapWidth())/20  && alive > 10 && earlyGameRush == 0/*|| (rc.getRoundNum() < 10 && earlyGameRush == 0)*/){
+                earlyGameRush = 300 + (rc.getMapHeight()+rc.getMapWidth())*2;
+                getEarlyGameRushHQCheck = 10+(rc.getMapWidth()+ rc.getMapHeight())/3;
+                rc.setIndicatorString("Rush decision");
+            }
+            //Early rush
+            else if (earlyGameRush > 0) {
+                if(earlyGameRush == 150){
+                    getEarlyGameRushHQCheck = 10+(rc.getMapWidth()+ rc.getMapHeight())/3;
+                }
+                getEarlyGameRushHQCheck --;
+                if(getEarlyGameRushHQCheck <= 0){
+                    earlyGameRush -= 10;
+                }
+                earlyGameRush --;
+                if(earlyGameRush > 150){
+                    RobotInfo tRinfo[] = rc.senseNearbyRobots(15, rc.getTeam().opponent());
+                    for (RobotInfo robot: tRinfo) {
+                        if(robot.getType().equals(RobotType.HEADQUARTERS)){
+                            if(robot.getLocation().distanceSquaredTo(rc.getLocation())< 13) {
+                                Direction retreatFromHQ = robot.getLocation().directionTo(rc.getLocation());
+                                getEarlyGameRushHQCheck = 30;
+                            }
+                        }
+                    }
+                    if(botID % armyDivider >= 1) {
+                        attack(rc, enemySpace.x, enemySpace.y, 4);
+                        attack(rc, enemySpace.x, enemySpace.y, 4);
+                        rc.setIndicatorString("Early rush diagonal");
+                    }
+                    else{
+                        rc.setIndicatorString("Attack center");
+                        goToPosition(rc, rc.getMapWidth() / 2, rc.getMapHeight() / 2);
+                    }
+                }
+                else{
+                    if(botID % armyDivider >= 2) {
+                        attack(rc, enemySpace.x, spawnY, 4);
+                        rc.setIndicatorString("Early rush on enemySpace X");
+                    }
+                    else{
+                        attack(rc, spawnX, enemySpace.y, 4);
+                        rc.setIndicatorString("Early rush on enemySpace Y");
+                    }
+                }
+
+            }
+            /*else if(rc.getRoundNum()/10  +(rc.getMapWidth()+rc.getMapHeight())/10 > rc.getRobotCount() && rc.getRoundNum() < 600 && rc.getRoundNum() > 60 && protectForXMoves == 0) {
                 //Protect HQ, because the center is lost and we will save the robots
                 protectForXMoves = 300 -  (rc.getRoundNum()-100);
+                rc.setIndicatorString("Fall back decision");
             }
 
-            if(protectForXMoves > 0){
+            else if(protectForXMoves > 0){
                 protectForXMoves --;
-                protectHQ(rc, saveSpace.x, saveSpace.y, 3);
+                protectHQ(rc, spawnX, spawnY, 3);
                 rc.setIndicatorString("Protect HQ for " + Integer.toString(protectForXMoves) + "moves.");
                 if(protectForXMoves == 0){
                     protectForXMoves = -1;
@@ -141,8 +198,9 @@ public class Launcher {
                     protectForXMoves = 0;
                 }
             }
-            else if(rc.getRoundNum() > 375 && rc.getRoundNum() < 575 ||
-                    rc.getRoundNum() > 900 && rc.getRoundNum() < 1500 ||
+
+             */
+            else if(rc.getRoundNum() > 900 && rc.getRoundNum() < 1500 ||
                     rc.getRoundNum() > 1900 && rc.getRoundNum() < 2000){
                 if(botID % armyDivider >= 3){
                     rc.setIndicatorString("Attack explore");
@@ -155,16 +213,40 @@ public class Launcher {
                             Integer.toString(enemySpace.x) + " Y: " + Integer.toString(enemySpace.y));
                 }
                 else{
-                    rc.setIndicatorString("Attack center");
-                    goToPosition(rc, rc.getMapWidth()/2,rc.getMapHeight()/2);
+                    if(rc.getRoundNum() > 120 + (rc.getMapHeight()+rc.getMapHeight())/2){
+                        if(botID % armyDivider >= 1) {
+                            rc.setIndicatorString("Attack center");
+                            goToPosition(rc, rc.getMapWidth() / 2, rc.getMapHeight() / 2);
+                        }
+                        else{
+                            rc.setIndicatorString("Protecting Home");
+                            attack(rc, spawnX, spawnY, 6);
+                        }
+                    }
+                    else{
+                        rc.setIndicatorString("Attack center");
+                        goToPosition(rc, rc.getMapWidth() / 2, rc.getMapHeight() / 2);
+                    }
+
                 }
 
             }
             else{
-                rc.setIndicatorString("Attack center");
-                goToPosition(rc, rc.getMapWidth()/2,rc.getMapHeight()/2);
+                if(rc.getRoundNum() > 120 + (rc.getMapHeight()+rc.getMapHeight())/2){
+                    if(botID % armyDivider >= 1) {
+                        rc.setIndicatorString("Attack center");
+                        goToPosition(rc, rc.getMapWidth() / 2, rc.getMapHeight() / 2);
+                    }
+                    else{
+                        rc.setIndicatorString("Protecting Home");
+                        attack(rc, spawnX, spawnY, 6);
+                    }
+                }
+                else{
+                    rc.setIndicatorString("Attack center");
+                    goToPosition(rc, rc.getMapWidth() / 2, rc.getMapHeight() / 2);
+                }
             }
-
 
             //returnToHomeBase(rc, hqLocations.get(0).x, hqLocations.get(0).y);
 
