@@ -274,6 +274,7 @@ public class Launcher {
                 else{
                     rc.setIndicatorString("Attack center");
                     goToPosition(rc, rc.getMapWidth() / 2, rc.getMapHeight() / 2);
+
                 }
             }
 
