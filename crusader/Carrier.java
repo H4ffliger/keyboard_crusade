@@ -22,6 +22,11 @@ public class Carrier {
     private static final ArrayList<MapLocation> manaWells = new ArrayList<>();
 
     private static final ArrayList<WellEntity> mnWellEntities = new ArrayList<>();
+
+    private static final ArrayList<MapLocation> occupiedIslandLocations = new ArrayList<>();
+
+    private static final ArrayList<MapLocation> sensedLocations = new ArrayList<>();
+
     private static int goal = 0;
 
     //TODO: change strategy to place anchor
@@ -33,6 +38,27 @@ public class Carrier {
         if (turnCount % 2 == 0) {
             //every second turn sense Wells
             senseWellsAndAddNewOne(rc);
+        }
+        if (rc.getWeight() > 20) {
+            RobotInfo[] enemyRobots = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
+            if (enemyRobots.length > 0) {
+                RobotInfo enemy = enemyRobots[0];
+                int minimalAttackerHealth = 500;
+                int minimalHealth = 400;
+                for (RobotInfo robot : enemyRobots) {
+                    if (robot.getType()==RobotType.LAUNCHER||robot.getType()==RobotType.DESTABILIZER) {
+                        minimalAttackerHealth = robot.getHealth();
+                        enemy = robot;
+                    } else if (robot.getHealth() < minimalHealth && minimalAttackerHealth==500 && goal != 5) {
+                        minimalHealth = robot.getHealth();
+                        enemy = robot;
+                    }
+                }
+                if (rc.canAttack(enemy.getLocation())) {
+                    rc.attack(enemy.getLocation());
+                    goal=0;
+                }
+            }
         }
         if (goal == 0) {
             //find new strategy
@@ -50,7 +76,6 @@ public class Carrier {
         } else if (goal == 1) {
             rc.setIndicatorString("I go mining");
             goMining(rc, me, ResourceType.MANA);
-
             if (getTotalResources(rc) == 40) {
                 goal = 2;
             }
@@ -84,38 +109,43 @@ public class Carrier {
     }
 
     private static void senseWellsAndAddNewOne(RobotController rc) throws GameActionException {
-        WellInfo[] wellInfos = rc.senseNearbyWells();
-        ArrayList<WellEntity> getWellEntities = getAllWells(rc);
-        if (!(getWellEntities.size()==manaWells.size()+adWells.size())) {
-            updateWellList(getWellEntities);
-
-        }
-        for (WellInfo wellInfo : wellInfos) {
-            if (!manaWells.contains(wellInfo.getMapLocation())&&wellInfo.getResourceType()==ResourceType.MANA) {
-                manaWells.add(wellInfo.getMapLocation());
-                WellEntity addedEntity = new WellEntity(-1, wellInfo.getMapLocation());
-                addedEntity.setWellStatus(MANA_WELL_STATUS);
-                mnWellEntities.add(addedEntity);
-                addWell(rc, addedEntity);
-            } else if (!adWells.contains(wellInfo.getMapLocation())&&wellInfo.getResourceType()==ResourceType.ADAMANTIUM) {
-                adWells.add(wellInfo.getMapLocation());
-                WellEntity addedEntity = new WellEntity(-1, wellInfo.getMapLocation());
-                addedEntity.setWellStatus(ADMANTIUM_WELL_STATUS);
-                adWellEntities.add(addedEntity);
-                addWell(rc, addedEntity);
+        if (!sensedLocations.contains(rc.getLocation())) {
+            WellInfo[] wellInfos = rc.senseNearbyWells();
+            ArrayList<WellEntity> getWellEntities = getAllWells(rc);
+            if (!(getWellEntities.size() == manaWells.size() + adWells.size())) {
+                updateWellList(getWellEntities);
             }
+            for (WellInfo wellInfo : wellInfos) {
+                if (!manaWells.contains(wellInfo.getMapLocation()) && wellInfo.getResourceType() == ResourceType.MANA) {
+                    manaWells.add(wellInfo.getMapLocation());
+                    WellEntity addedEntity = new WellEntity(-1, wellInfo.getMapLocation());
+                    addedEntity.setWellStatus(MANA_WELL_STATUS);
+                    mnWellEntities.add(addedEntity);
+                    addWell(rc, addedEntity);
+                } else if (!adWells.contains(wellInfo.getMapLocation()) && wellInfo.getResourceType() == ResourceType.ADAMANTIUM) {
+                    adWells.add(wellInfo.getMapLocation());
+                    WellEntity addedEntity = new WellEntity(-1, wellInfo.getMapLocation());
+                    addedEntity.setWellStatus(ADMANTIUM_WELL_STATUS);
+                    adWellEntities.add(addedEntity);
+                    addWell(rc, addedEntity);
+                }
+            }
+            int[] islands = rc.senseNearbyIslands();
+            for (int islandIndex : islands) {
+                updateIslandInfo(rc, islandIndex);
+            }
+            tryWriteMessages(rc);
+            sensedLocations.add(rc.getLocation());
         }
-        tryWriteMessages(rc);
+
     }
 
     private static void updateWellList(ArrayList<WellEntity> getWellEntities) {
-        for(WellEntity wellEntity:getWellEntities) {
-            if (wellEntity.getWellStatus()==MANA_WELL_STATUS) {
+        for (WellEntity wellEntity : getWellEntities) {
+            if (wellEntity.getWellStatus() == MANA_WELL_STATUS) {
                 mnWellEntities.add(wellEntity);
                 manaWells.add(wellEntity.getOwnLocation());
-            }
-
-            else if (wellEntity.getWellStatus()==ADMANTIUM_WELL_STATUS) {
+            } else if (wellEntity.getWellStatus() == ADMANTIUM_WELL_STATUS) {
                 adWellEntities.add(wellEntity);
                 adWells.add(wellEntity.getOwnLocation());
             }
@@ -132,7 +162,20 @@ public class Carrier {
                 if (rc.senseTeamOccupyingIsland(id) != rc.getTeam()) {
                     MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
                     islandLocs.addAll(Arrays.asList(thisIslandLocs));
+                } else {
+                    occupiedIslandLocations.addAll(Arrays.asList(rc.senseNearbyIslandLocations(id)));
                 }
+                updateIslandInfo(rc, id);
+            }
+            tryWriteMessages(rc);
+            if (islandLocs.size() == 0) {
+                ArrayList<MapLocation> islandLocations = getUnoccupiedIslands(rc);
+                for (MapLocation island : islandLocations) {
+                    if (rc.canSenseLocation(island)) {
+                        if (!rc.senseTeamOccupyingIsland(rc.senseIsland(island)).isPlayer()||!occupiedIslandLocations.contains(island)) islandLocs.add(island);
+                    } else islandLocs.add(island);
+                }
+
             }
             if (islandLocs.size() > 0) {
                 int minimalDistance = 100000;
@@ -145,11 +188,9 @@ public class Carrier {
                     }
                 }
                 rc.setIndicatorString("Moving my anchor towards " + nearestIland);
-                System.out.println("BEFOR WHILE");
-                while (!rc.getLocation().equals(nearestIland)) {
-                    goToPosition(rc, nearestIland);
-                    Clock.yield();
-                }
+                goToPosition(rc, nearestIland);
+                Clock.yield();
+
                 if (rc.canPlaceAnchor()) {
                     rc.setIndicatorString("Huzzah, placed anchor!");
                     rc.placeAnchor();
@@ -210,7 +251,7 @@ public class Carrier {
     }
 
     private static void goMining(RobotController rc, MapLocation me, MapLocation target) throws GameActionException {
-        if (me.isAdjacentTo(target) || me.distanceSquaredTo(target) == 1) {
+        if (me.isAdjacentTo(target) || me.distanceSquaredTo(target) <= 1) {
             while (rc.canCollectResource(target, -1)) rc.collectResource(target, -1);
         } else {
             goToPosition(rc, target);
