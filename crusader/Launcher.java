@@ -138,8 +138,20 @@ public class Launcher {
             }
             //Early rush
             else if (earlyGameRush > 0) {
-                if(earlyGameRush == 150){
-                    getEarlyGameRushHQCheck = 10+(rc.getMapWidth()+ rc.getMapHeight())/3;
+
+                RobotInfo tRinfo[] = rc.senseNearbyRobots(15, rc.getTeam().opponent());
+                for (RobotInfo robot: tRinfo) {
+                    if(robot.getType().equals(RobotType.HEADQUARTERS)){
+                        if(robot.getLocation().distanceSquaredTo(rc.getLocation())< 13) {
+                            //System.out.println("camping");
+                            getEarlyGameRushHQCheck = 30;
+                            campFlg = true;
+                        }
+                    }
+                }
+
+                if(earlyGameRush <= 150 && earlyGameRush >= 140){
+                    getEarlyGameRushHQCheck = 20+(rc.getMapWidth()+ rc.getMapHeight())/2;
                 }
                 if(campFlg == false){
                     getEarlyGameRushHQCheck --;
@@ -153,16 +165,6 @@ public class Launcher {
                 }
 
                 if(earlyGameRush > 150){
-                    RobotInfo tRinfo[] = rc.senseNearbyRobots(15, rc.getTeam().opponent());
-                    for (RobotInfo robot: tRinfo) {
-                        if(robot.getType().equals(RobotType.HEADQUARTERS)){
-                            if(robot.getLocation().distanceSquaredTo(rc.getLocation())< 13) {
-                                System.out.println("camping");
-                                getEarlyGameRushHQCheck = 30;
-                                campFlg = true;
-                            }
-                        }
-                    }
                     if(botID % armyDivider >= 1) {
                         attack(rc, enemySpace.x, enemySpace.y, 4);
                         rc.setIndicatorString("Early rush diagonal");
