@@ -33,6 +33,8 @@ public class Launcher {
     private static int earlyGameRush = 0;
     private static int getEarlyGameRushHQCheck;
 
+    private static boolean campFlg = false;
+
 
     static void runLauncher(RobotController rc) throws GameActionException {
 
@@ -136,7 +138,10 @@ public class Launcher {
                 if(getEarlyGameRushHQCheck <= 0){
                     earlyGameRush -= 10;
                 }
-                earlyGameRush --;
+                if(campFlg == false){
+                    earlyGameRush --;
+                }
+
                 if(earlyGameRush > 150){
                     RobotInfo tRinfo[] = rc.senseNearbyRobots(15, rc.getTeam().opponent());
                     for (RobotInfo robot: tRinfo) {
@@ -144,11 +149,11 @@ public class Launcher {
                             if(robot.getLocation().distanceSquaredTo(rc.getLocation())< 13) {
                                 Direction retreatFromHQ = robot.getLocation().directionTo(rc.getLocation());
                                 getEarlyGameRushHQCheck = 30;
+                                campFlg = true;
                             }
                         }
                     }
                     if(botID % armyDivider >= 1) {
-                        attack(rc, enemySpace.x, enemySpace.y, 4);
                         attack(rc, enemySpace.x, enemySpace.y, 4);
                         rc.setIndicatorString("Early rush diagonal");
                     }
