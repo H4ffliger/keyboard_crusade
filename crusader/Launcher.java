@@ -40,6 +40,8 @@ public class Launcher {
 
     private static MapLocation toAttack;
     private static int toAttackFollowCooldown = 0;
+    private static RobotInfo backUpRobot;
+    private static int backUp = 0;
 
 
     static void runLauncher(RobotController rc) throws GameActionException {
@@ -82,6 +84,7 @@ public class Launcher {
             //Attack first Launcher
             RobotInfo target=enemies[0];
             int lowestHealth = 400;
+            backUpRobot = enemies[0];
 
             for(RobotInfo info :enemies) {
 
@@ -90,6 +93,7 @@ public class Launcher {
                     if(info.getHealth() < lowestHealth) {
                         lowestHealth = info.getHealth();
                         target = info;
+                        backUpRobot = info;
                     }
                 }
             }
@@ -102,6 +106,7 @@ public class Launcher {
                         if(info.getHealth() < lowestHealth) {
                             lowestHealth = info.getHealth();
                             target = info;
+                            backUpRobot = info;
                         }
                     }
                 }
@@ -111,6 +116,7 @@ public class Launcher {
                 rc.setIndicatorString("Attacking");
                 rc.attack(toAttack);
                 toAttackFollowCooldown =3;
+                backUp =1;
             } else {
                 //goToPosition(rc,toAttack);
             }
@@ -130,6 +136,26 @@ public class Launcher {
             currently just hardcode spreading, integrate communication for coordinated attack
             ToDO: There are currently false positive retreats
              */
+
+
+            //Fight tactics
+            if(backUp >0){
+                if(backUpRobot.getType() == RobotType.LAUNCHER || backUpRobot.getType() == RobotType.DESTABILIZER) {
+                    MapLocation backUpLoc = rc.getLocation().subtract(rc.getLocation().directionTo(toAttack));
+                    goToPosition(rc, backUpLoc);
+                    if(rc.canAttack(toAttack.add(rc.getLocation().directionTo(toAttack)))){
+                        rc.attack(toAttack.add(rc.getLocation().directionTo(toAttack)));
+                    }
+                    else if(rc.canAttack(toAttack)){
+                        rc.attack(toAttack);
+                    }
+
+                }
+            }
+            backUp --;
+
+
+
 
             if(rc.getRoundNum() < 1000 && rc.senseNearbyRobots(20, rc.getTeam()).length > 2+(rc.getMapHeight()+rc.getMapWidth())/20  && alive > 10 && earlyGameRush == 0/*|| (rc.getRoundNum() < 10 && earlyGameRush == 0)*/ && protectHomeFlg == false){
                 earlyGameRush = 300 + (rc.getMapHeight()+rc.getMapWidth())*2;
