@@ -21,12 +21,12 @@ class Message {
 
 class Communication {
 
-    private static final int OUTDATED_TURNS_AMOUNT = 30;
+    private static final int OUTDATED_TURNS_AMOUNT = 70;
     private static final int AREA_RADIUS = RobotType.CARRIER.visionRadiusSquared;
 
     // Maybe you want to change this based on exact amounts which you can get on turn 1
     static final int STARTING_ISLAND_IDX = GameConstants.MAX_STARTING_HEADQUARTERS;
-    static final int STARTING_WELL_IDX = 35 + GameConstants.MAX_STARTING_HEADQUARTERS;
+    static final int STARTING_WELL_IDX = GameConstants.MAX_NUMBER_ISLANDS + GameConstants.MAX_STARTING_HEADQUARTERS;
     private static final int MAX_WELLS_IN_ARRAY = 15;
     private static final int STARTING_ENEMY_IDX = STARTING_WELL_IDX + MAX_WELLS_IN_ARRAY;
 
@@ -40,10 +40,10 @@ class Communication {
     private static final int ISLAND_HEALTH_BITS = 3;
     private static final int ISLAND_HEALTH_SIZE = (int) Math.ceil(Anchor.ACCELERATING.totalHealth / 8.0);
 
-    private static List<Message> messagesQueue = new ArrayList<>();
-    private static HeadquarterEntity[] headquarterEntities = new HeadquarterEntity[GameConstants.MAX_STARTING_HEADQUARTERS];
+    private static final List<Message> messagesQueue = new ArrayList<>();
+    private static final HeadquarterEntity[] headquarterEntities = new HeadquarterEntity[GameConstants.MAX_STARTING_HEADQUARTERS];
 
-    private static WellEntity[] wellEntities = new WellEntity[MAX_WELLS_IN_ARRAY];
+    private static final WellEntity[] wellEntities = new WellEntity[MAX_WELLS_IN_ARRAY];
 
 
     static void addHeadquarter(RobotController rc) throws GameActionException {
@@ -87,6 +87,23 @@ class Communication {
                 }
             }
         }
+    }
+
+    static ArrayList<MapLocation> getUnoccupiedIslands(RobotController rc) {
+        ArrayList<MapLocation> returnLocations = new ArrayList<>();
+        for (int i=0;i<STARTING_ISLAND_IDX;i++) {
+            if (readTeamHoldingIsland(rc,i)!=rc.getTeam()) {
+                MapLocation islandLocation = readIslandLocation(rc,i);
+                if (islandLocation!= null) returnLocations.add(readIslandLocation(rc,i)) ;
+            }
+        }
+        if (returnLocations.size()==0) {
+            for (int i=0;i<STARTING_ISLAND_IDX;i++) {
+                MapLocation islandLocation = readIslandLocation(rc,i);
+                if (islandLocation!= null) returnLocations.add(readIslandLocation(rc,i)) ;
+            }
+        }
+        return returnLocations;
     }
 
     static void updateIslandInfo(RobotController rc, int id) throws GameActionException {
@@ -154,7 +171,7 @@ class Communication {
         return null;
     }
 
-    static int readMaxIslandHealth(RobotController rc, int islandId) {
+    /*static int readMaxIslandHealth(RobotController rc, int islandId) {
         try {
             islandId = islandId + STARTING_ISLAND_IDX;
             int islandInt = rc.readSharedArray(islandId);
@@ -164,7 +181,7 @@ class Communication {
         } catch (GameActionException e) {
             return -1;
         }
-    }
+    }*/
 
     static void addWell(RobotController rc, WellEntity well) throws GameActionException {
         int status = -1;
