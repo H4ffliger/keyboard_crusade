@@ -1,9 +1,7 @@
 package crusader;
 
 import battlecode.common.*;
-import scala.Int;
 
-import javax.print.attribute.standard.Destination;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -27,9 +25,9 @@ public class Launcher {
     private static MapLocation enemySpace;
 
     //For attacks and exploring
-    private static Integer armyDivider = 4;
+    private static final Integer armyDivider = 4;
 
-    private static int protectForXMoves = 0;
+    private static final int protectForXMoves = 0;
 
     private static int earlyGameRush = 0;
     private static int getEarlyGameRushHQCheck;
@@ -156,7 +154,7 @@ public class Launcher {
                         }
 
                         //shoot and retreat
-                        if (distance <= 19 && distance > 16) {
+                        else if (distance > 16) {
                             if (rc.canAttack(toAttack.add(rc.getLocation().directionTo(toAttack)))) {
                                 rc.attack(toAttack.add(rc.getLocation().directionTo(toAttack)));
                             } else if (rc.canAttack(toAttack)) {
@@ -173,7 +171,7 @@ public class Launcher {
                             }
 
                         }
-                        if (distance <= 16) {
+                        else{
                             if (rc.canAttack(toAttack)) {
                                 rc.attack(toAttack);
                             } else if (rc.canAttack(toAttack.add(rc.getLocation().directionTo(toAttack)))) {
@@ -190,7 +188,7 @@ public class Launcher {
                 }
 
 
-                RobotInfo rI[] = rc.senseNearbyRobots(20, rc.getTeam());
+                RobotInfo[] rI = rc.senseNearbyRobots(20, rc.getTeam());
                 int amountOfLaunchers = 0;
                 for (RobotInfo robot : rI) {
                     if (robot.getType() == RobotType.LAUNCHER) {
@@ -199,7 +197,7 @@ public class Launcher {
                 }
 
 
-                if (rc.getRoundNum() < 1000 && amountOfLaunchers > 2 + (rc.getMapHeight() + rc.getMapWidth()) / 20 && alive > 10 && earlyGameRush == 0/*|| (rc.getRoundNum() < 10 && earlyGameRush == 0)*/ && protectHomeFlg == false) {
+                if (rc.getRoundNum() < 1000 && amountOfLaunchers > 2 + (rc.getMapHeight() + rc.getMapWidth()) / 20 && alive > 10 && earlyGameRush == 0/*|| (rc.getRoundNum() < 10 && earlyGameRush == 0)*/ && !protectHomeFlg) {
                     earlyGameRush = 300 + (rc.getMapHeight() + rc.getMapWidth()) * 2;
                     getEarlyGameRushHQCheck = 20 + (rc.getMapWidth() + rc.getMapHeight()) / 2;
                     rc.setIndicatorString("Rush decision");
@@ -207,7 +205,7 @@ public class Launcher {
                 //Early rush
                 else if (earlyGameRush > 0) {
 
-                    RobotInfo tRinfo[] = rc.senseNearbyRobots(15, rc.getTeam().opponent());
+                    RobotInfo[] tRinfo = rc.senseNearbyRobots(15, rc.getTeam().opponent());
                     for (RobotInfo robot : tRinfo) {
                         if (robot.getType().equals(RobotType.HEADQUARTERS)) {
                             if (robot.getLocation().distanceSquaredTo(rc.getLocation()) < 13) {
@@ -221,14 +219,14 @@ public class Launcher {
                     if (earlyGameRush <= 150 && earlyGameRush >= 140) {
                         getEarlyGameRushHQCheck = 20 + (rc.getMapWidth() + rc.getMapHeight()) / 2;
                     }
-                    if (campFlg == false) {
+                    if (!campFlg) {
                         getEarlyGameRushHQCheck--;
                         if (getEarlyGameRushHQCheck <= 0) {
                             earlyGameRush -= 10;
                         }
                     }
 
-                    if (campFlg == false) {
+                    if (!campFlg) {
                         earlyGameRush--;
                     }
 
@@ -291,7 +289,7 @@ public class Launcher {
                         //System.out.println("TTTT");
                         attack(rc, enemySpace.x, enemySpace.y);
                         rc.setIndicatorString("Attack enemy space at X: " +
-                                Integer.toString(enemySpace.x) + " Y: " + Integer.toString(enemySpace.y));
+                                enemySpace.x + " Y: " + enemySpace.y);
                     } else {
                         if (rc.getRoundNum() > 120 + (rc.getMapHeight() + rc.getMapHeight()) / 2) {
                             if (botID % armyDivider >= 1) {
