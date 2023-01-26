@@ -5,6 +5,7 @@ import battlecode.common.*;
 import java.util.ArrayList;
 
 import static exampleEnemy.Communication.*;
+import static exampleEnemy.Pathfinding.goToPosition;
 import static exampleEnemy.Pathing.moveTowards;
 import static exampleEnemy.RobotPlayer.turnCount;
 
@@ -45,6 +46,7 @@ public class LauncherStrategy {
         if (targetRobot != null) {
             if (rc.canAttack(targetRobot.getLocation()))
                 rc.attack(targetRobot.getLocation());
+                goToPosition(rc, rc.getLocation().add(targetRobot.getLocation().directionTo(rc.getLocation())));
         }
         tryWriteMessages(rc);
         //Accomplish one goal

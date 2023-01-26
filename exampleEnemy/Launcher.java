@@ -44,6 +44,7 @@ public class Launcher {
             if (rc.canAttack(toAttack)) {
                 rc.setIndicatorString("Attacking");
                 rc.attack(toAttack);
+                goToPosition(rc, rc.getLocation().add(toAttack.directionTo(rc.getLocation())));
             } else {
                 goToPosition(rc,toAttack);
             }
