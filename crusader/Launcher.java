@@ -81,7 +81,9 @@ public class Launcher {
         int radius = rc.getType().visionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
         enemies = rc.senseNearbyRobots(radius, opponent);
+        boolean oldEnemyInfo = true;
         if (enemies.length > 0) {
+            oldEnemyInfo = false;
             //System.out.println("Enemies in range!");
             //Attack first Launcher
             RobotInfo target = enemies[0];
@@ -145,6 +147,11 @@ public class Launcher {
                         MapLocation reengageLoc = rc.getLocation().add(rc.getLocation().directionTo(toAttack));
                         //Preshoot and wait
                         if (distance >16) {
+                            if(oldEnemyInfo){
+                                if (rc.canAttack(toAttack.add(rc.getLocation().directionTo(toAttack)))) {
+                                    rc.attack(toAttack.add(rc.getLocation().directionTo(toAttack)));
+                                }
+                            }
                             if (rc.canAttack(toAttack)) {
                                 rc.attack(toAttack);
                             }
@@ -178,6 +185,11 @@ public class Launcher {
                                 rc.attack(toAttack.add(rc.getLocation().directionTo(toAttack)));
                             }
                         } */else {
+                            if(oldEnemyInfo) {
+                                if (rc.canAttack(toAttack.add(rc.getLocation().directionTo(toAttack)))) {
+                                    rc.attack(toAttack.add(rc.getLocation().directionTo(toAttack)));
+                                }
+                            }
                             if (rc.canAttack(toAttack)) {
                                 rc.attack(toAttack);
                             }

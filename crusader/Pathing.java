@@ -7,6 +7,8 @@ public class Pathing {
 
     static Direction currentDirection = null;
 
+
+
     static void moveTowards(RobotController rc, MapLocation target) throws GameActionException {
         if (rc.getLocation().equals(target)) {
             return;
@@ -60,7 +62,7 @@ public class Pathing {
         }
     }
 
-    static void moveTowardsCarrierStuck(RobotController rc, MapLocation target) throws GameActionException {
+    static void moveTowardsAlt(RobotController rc, MapLocation target) throws GameActionException {
         if (rc.getLocation().equals(target)) {
             return;
         }

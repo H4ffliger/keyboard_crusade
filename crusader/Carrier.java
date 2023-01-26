@@ -6,7 +6,6 @@ import java.util.*;
 
 import static crusader.Communication.*;
 import static crusader.Pathfinding.goToPosition;
-import static crusader.Pathfinding.goToPositionCarrierStuck;
 import static crusader.RobotPlayer.*;
 import static crusader.Strategy.explore;
 
@@ -40,12 +39,9 @@ public class Carrier {
         if(botID ==null){
             botID = rc.getRobotCount() + rc.getRoundNum();
             //Initial Mn mine of > 75 of carriers
-            if(botID %5 >= 1){
+            //if(botID %5 >= 1){
                 goal =5;
-            }
-        }
-        if(rc.getRoundNum()%100 == 0){
-            botID++;
+            //}
         }
 
 
@@ -82,11 +78,21 @@ public class Carrier {
                 rc.takeAnchor(homeHQ, Anchor.STANDARD);
                 goal = 3;
             } else {
-                if (rng.nextInt(3) == 0) {
-                    goal = 4;
-                } else {
-                    goal = 5;
+                if(rc.getRoundNum() < 200){
+                    if (rng.nextInt(10) == 0) {
+                        goal = 4;
+                    } else {
+                        goal = 5;
+                    }
                 }
+                else{
+                    if (rng.nextInt(2) == 0) {
+                        goal = 4;
+                    } else {
+                        goal = 5;
+                    }
+                }
+
             }
 
         } else if (goal == 1) {
@@ -204,12 +210,9 @@ public class Carrier {
                     }
                 }
                 rc.setIndicatorString("Moving my anchor towards " + nearestIland);
-                if(botID%2 == 1) {
-                    goToPosition(rc, nearestIland);
-                }
-                else{
-                    goToPositionCarrierStuck(rc, nearestIland);
-                }
+
+                goToPosition(rc, nearestIland);
+
                 //goToPosition(rc, nearestIland);
                 Clock.yield();
 
@@ -247,12 +250,9 @@ public class Carrier {
                         goal = 0;
                     }
                 } else {
-                    if(botID%2 == 1) {
-                        goToPosition(rc, homeHQ);
-                    }
-                    else{
-                        goToPositionCarrierStuck(rc, homeHQ);
-                    }
+
+                    goToPosition(rc, homeHQ);
+
                     rc.setIndicatorString("Move to HQ");
                 }
             } else {
@@ -281,12 +281,7 @@ public class Carrier {
         if (me.isAdjacentTo(target) || me.distanceSquaredTo(target) <= 1) {
             while (rc.canCollectResource(target, -1)) rc.collectResource(target, -1);
         } else {
-            if(botID%2 == 1) {
-                goToPosition(rc, target);
-            }
-            else{
-                goToPositionCarrierStuck(rc, target);
-            }
+            goToPosition(rc, target);
             rc.setIndicatorString("Move to nearest Well");
         }
     }
