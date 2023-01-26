@@ -5,6 +5,7 @@ import battlecode.common.RobotController;
 import battlecode.common.MapLocation;
 
 import static crusader.Pathing.moveTowards;
+import static crusader.Pathing.moveTowardsCarrierStuck;
 
 public class Pathfinding {
 
@@ -16,50 +17,20 @@ public class Pathfinding {
 
     }*/
 
-    public static void returnToHomeBase (RobotController rc, int tx, int ty) throws GameActionException{
-        goToPosition(rc,new MapLocation(tx,ty));
+    public static void returnToHomeBase(RobotController rc, int tx, int ty) throws GameActionException {
+        goToPosition(rc, new MapLocation(tx, ty));
     }
 
     //ToDo: Do not move if on position
-    public static void goToPosition (RobotController rc, int tx, int ty) throws GameActionException{
-        goToPosition(rc,new MapLocation(tx,ty));
+    public static void goToPosition(RobotController rc, int tx, int ty) throws GameActionException {
+        goToPosition(rc, new MapLocation(tx, ty));
     }
 
-    public static void goToPosition (RobotController rc, MapLocation target) throws GameActionException{
-        moveTowards(rc,target);
-        /*
-        MapLocation currentLocation = rc.getLocation();
-        Direction oTDirection = currentLocation.directionTo(target);
-        Direction tDirection;
-        if(rc.canMove(oTDirection)) {
-            rc.move(oTDirection);
-        }
-        else if (rc.canMove(oTDirection.rotateLeft())) {
-            rc.move(oTDirection.rotateLeft());
-        }
-        else if (rc.canMove(oTDirection.rotateRight())) {
-            rc.move(oTDirection.rotateRight());
-        }
-        else {
-            tDirection = oTDirection.rotateRight();
-            //First concept for not getting stuckd directly
-            for (int z = 0; z < 3; z++) {
-                tDirection = tDirection.rotateRight();
-                if (rc.canMove(tDirection)) {
-                    rc.move(tDirection);
-                }
-            }
-        }*/
+    public static void goToPosition(RobotController rc, MapLocation target) throws GameActionException {
+        moveTowards(rc, target);
     }
 
-
-
-    /*public static void calculatePath (RobotController rc, int tx, int ty) throws GameActionException{
-        MapLocation currentLocation = new MapLocation(rc.getLocation().x, rc.getLocation().y);
-        //rc.canSenseLocation(0,0)
-        //
-
-    }*/
-
-
+    public static void goToPositionCarrierStuck(RobotController rc, MapLocation target) throws GameActionException {
+        moveTowardsCarrierStuck(rc, target);
+    }
 }

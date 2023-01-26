@@ -1,6 +1,7 @@
 package crusader;
 
 import battlecode.common.*;
+import scala.Int;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -41,6 +42,8 @@ public class Launcher {
     private static RobotInfo backUpRobot;
     private static int inFight = 0;
 
+    private static RobotInfo enemies[];
+
 
     static void runLauncher(RobotController rc) throws GameActionException {
 
@@ -77,7 +80,7 @@ public class Launcher {
         // Try to attack someone
         int radius = rc.getType().visionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
-        RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
+        enemies = rc.senseNearbyRobots(radius, opponent);
         if (enemies.length > 0) {
             //System.out.println("Enemies in range!");
             //Attack first Launcher
@@ -93,12 +96,14 @@ public class Launcher {
                         lowestHealth = info.getHealth();
                         target = info;
                         backUpRobot = info;
+                        inFight = 9;
+                        toAttackFollowCooldown = 3;
                     }
                 }
             }
 
             //If there are no launchers attack Carriers
-            if (target == enemies[0] && target.getType() != RobotType.LAUNCHER) {
+            if (target == enemies[0] && target.getType() != RobotType.LAUNCHER && target.getType() != RobotType.DESTABILIZER) {
                 enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, opponent);
                 for (RobotInfo info : enemies) {
                     if (info.getType() == RobotType.CARRIER || info.getType() == RobotType.AMPLIFIER || info.getType() == RobotType.BOOSTER) {
@@ -112,9 +117,7 @@ public class Launcher {
             }
             toAttack = target.location;
             if (rc.canAttack(toAttack)) {
-                //rc.attack(toAttack);
-                inFight = 6 + 1;
-                toAttackFollowCooldown = 3;
+                rc.attack(toAttack);
             }
         }
 
@@ -134,58 +137,59 @@ public class Launcher {
              */
 
                 inFight--;
-                if(enemies.length > 0){
-                if(backUpRobot.getType() == RobotType.LAUNCHER || backUpRobot.getType() == RobotType.DESTABILIZER){
-                    if (inFight > 0) {
+                if (inFight > 0) {
+                    rc.setIndicatorString("inFight: " + Integer.toString(inFight));
                         //Shoot
                         int distance = rc.getLocation().distanceSquaredTo(toAttack);
                         MapLocation backUpLoc = rc.getLocation().subtract(rc.getLocation().directionTo(toAttack));
-                        MapLocation reengageLoc = rc.getLocation().subtract(rc.getLocation().directionTo(toAttack));
-
+                        MapLocation reengageLoc = rc.getLocation().add(rc.getLocation().directionTo(toAttack));
                         //Preshoot and wait
-                        if (distance >= 20) {
-                            if (rc.canAttack(toAttack.add(rc.getLocation().directionTo(toAttack)))) {
-                                rc.attack(toAttack.add(rc.getLocation().directionTo(toAttack)));
-                            } else if (rc.canAttack(toAttack)) {
+                        if (distance >16) {
+                            if (rc.canAttack(toAttack)) {
                                 rc.attack(toAttack);
                             }
-                            rc.setIndicatorString("Wait for enemy");
-                            return;
-                        }
 
-                        //shoot and retreat
-                        else if (distance > 16) {
-                            if (rc.canAttack(toAttack.add(rc.getLocation().directionTo(toAttack)))) {
-                                rc.attack(toAttack.add(rc.getLocation().directionTo(toAttack)));
-                            } else if (rc.canAttack(toAttack)) {
+                            rc.setIndicatorString("Reengage in " + Integer.toString(rc.getRoundNum()%4));
+                            if (rc.getRoundNum() % 3 == 0) {
+                                goToPosition(rc, reengageLoc);
+                            }
+                            if (rc.canAttack(toAttack)) {
                                 rc.attack(toAttack);
+                            }
+                            else if (rc.canAttack(toAttack.add(rc.getLocation().directionTo(toAttack)))) {
+                                rc.attack(toAttack.add(rc.getLocation().directionTo(toAttack)));
+                            }
+
+                        } /*else if (distance > 16) {
+                            if (rc.canAttack(toAttack)) {
+                                rc.attack(toAttack);
+                                goToPosition(rc, backUpLoc);
                             }
                             rc.setIndicatorString("Swipe attack");
                             //Disengage and engage
                             if (rc.getRoundNum() % 2 == 1) {
                                 goToPosition(rc, reengageLoc);
+                            } else {
+                                goToPosition(rc, backUpLoc);
                             }
-                            else {
-                                goToPosition(rc, toAttack);
-                                return;
-                            }
-
-                        }
-                        else{
                             if (rc.canAttack(toAttack)) {
                                 rc.attack(toAttack);
                             } else if (rc.canAttack(toAttack.add(rc.getLocation().directionTo(toAttack)))) {
                                 rc.attack(toAttack.add(rc.getLocation().directionTo(toAttack)));
                             }
+                        } */else {
+                            if (rc.canAttack(toAttack)) {
+                                rc.attack(toAttack);
+                            }
                             goToPosition(rc, backUpLoc);
                             rc.setIndicatorString("Retreat enemy too close");
+                            if (rc.canAttack(toAttack)) {
+                                rc.attack(toAttack);
+                            } else if (rc.canAttack(toAttack.add(rc.getLocation().directionTo(toAttack)))) {
+                                rc.attack(toAttack.add(rc.getLocation().directionTo(toAttack)));
+                            }
                         }
                     }
-                }
-                if (rc.canAttack(toAttack)){
-                        rc.attack(toAttack);
-                    }
-                }
 
 
                 RobotInfo[] rI = rc.senseNearbyRobots(20, rc.getTeam());
@@ -196,59 +200,59 @@ public class Launcher {
                     }
                 }
 
+                if (inFight <= 0) {
+                    if (rc.getRoundNum() < 1000 && amountOfLaunchers > 2 + (rc.getMapHeight() + rc.getMapWidth()) / 20 && alive > 10 && earlyGameRush == 0/*|| (rc.getRoundNum() < 10 && earlyGameRush == 0)*/ && !protectHomeFlg) {
+                        earlyGameRush = 300 + (rc.getMapHeight() + rc.getMapWidth()) * 2;
+                        getEarlyGameRushHQCheck = 20 + (rc.getMapWidth() + rc.getMapHeight()) / 2;
+                        rc.setIndicatorString("Rush decision");
+                    }
+                    //Early rush
+                    else if (earlyGameRush > 0) {
 
-                if (rc.getRoundNum() < 1000 && amountOfLaunchers > 2 + (rc.getMapHeight() + rc.getMapWidth()) / 20 && alive > 10 && earlyGameRush == 0/*|| (rc.getRoundNum() < 10 && earlyGameRush == 0)*/ && !protectHomeFlg) {
-                    earlyGameRush = 300 + (rc.getMapHeight() + rc.getMapWidth()) * 2;
-                    getEarlyGameRushHQCheck = 20 + (rc.getMapWidth() + rc.getMapHeight()) / 2;
-                    rc.setIndicatorString("Rush decision");
-                }
-                //Early rush
-                else if (earlyGameRush > 0) {
-
-                    RobotInfo[] tRinfo = rc.senseNearbyRobots(15, rc.getTeam().opponent());
-                    for (RobotInfo robot : tRinfo) {
-                        if (robot.getType().equals(RobotType.HEADQUARTERS)) {
-                            if (robot.getLocation().distanceSquaredTo(rc.getLocation()) < 13) {
-                                //System.out.println("camping");
-                                getEarlyGameRushHQCheck = 30;
-                                campFlg = true;
+                        RobotInfo[] tRinfo = rc.senseNearbyRobots(15, rc.getTeam().opponent());
+                        for (RobotInfo robot : tRinfo) {
+                            if (robot.getType().equals(RobotType.HEADQUARTERS)) {
+                                if (robot.getLocation().distanceSquaredTo(rc.getLocation()) < 13) {
+                                    //System.out.println("camping");
+                                    getEarlyGameRushHQCheck = 30;
+                                    campFlg = true;
+                                }
                             }
                         }
-                    }
 
-                    if (earlyGameRush <= 150 && earlyGameRush >= 140) {
-                        getEarlyGameRushHQCheck = 20 + (rc.getMapWidth() + rc.getMapHeight()) / 2;
-                    }
-                    if (!campFlg) {
-                        getEarlyGameRushHQCheck--;
-                        if (getEarlyGameRushHQCheck <= 0) {
-                            earlyGameRush -= 10;
+                        if (earlyGameRush <= 150 && earlyGameRush >= 140) {
+                            getEarlyGameRushHQCheck = 20 + (rc.getMapWidth() + rc.getMapHeight()) / 2;
                         }
-                    }
+                        if (!campFlg) {
+                            getEarlyGameRushHQCheck--;
+                            if (getEarlyGameRushHQCheck <= 0) {
+                                earlyGameRush -= 10;
+                            }
+                        }
 
-                    if (!campFlg) {
-                        earlyGameRush--;
-                    }
+                        if (!campFlg) {
+                            earlyGameRush--;
+                        }
 
-                    if (earlyGameRush > 150) {
-                        if (botID % armyDivider >= 1) {
-                            attack(rc, enemySpace.x, enemySpace.y, 4);
-                            rc.setIndicatorString("Early rush diagonal");
+                        if (earlyGameRush > 150) {
+                            if (botID % armyDivider >= 1) {
+                                attack(rc, enemySpace.x, enemySpace.y, 4);
+                                rc.setIndicatorString("Early rush diagonal");
+                            } else {
+                                //rc.setIndicatorString("Attack center");
+                                goToPosition(rc, rc.getMapWidth() / 2, rc.getMapHeight() / 2);
+                            }
                         } else {
-                            //rc.setIndicatorString("Attack center");
-                            goToPosition(rc, rc.getMapWidth() / 2, rc.getMapHeight() / 2);
+                            if (botID % armyDivider >= 2) {
+                                attack(rc, enemySpace.x, spawnY, 4);
+                                rc.setIndicatorString("Early rush on enemySpace X");
+                            } else {
+                                attack(rc, spawnX, enemySpace.y, 4);
+                                rc.setIndicatorString("Early rush on enemySpace Y");
+                            }
                         }
-                    } else {
-                        if (botID % armyDivider >= 2) {
-                            attack(rc, enemySpace.x, spawnY, 4);
-                            rc.setIndicatorString("Early rush on enemySpace X");
-                        } else {
-                            attack(rc, spawnX, enemySpace.y, 4);
-                            rc.setIndicatorString("Early rush on enemySpace Y");
-                        }
-                    }
 
-                }
+                    }
             /*else if(rc.getRoundNum()/10  +(rc.getMapWidth()+rc.getMapHeight())/10 > rc.getRobotCount() && rc.getRoundNum() < 600 && rc.getRoundNum() > 60 && protectForXMoves == 0) {
                 //Protect HQ, because the center is lost and we will save the robots
                 protectForXMoves = 300 -  (rc.getRoundNum()-100);
@@ -280,20 +284,42 @@ public class Launcher {
             }
 
              */
-                else if (rc.getRoundNum() > 1200 && rc.getRoundNum() < 1500 ||
-                        rc.getRoundNum() > 1800 && rc.getRoundNum() < 2000) {
-                    if (botID % armyDivider >= 3) {
-                        rc.setIndicatorString("Attack explore");
-                        attack(rc, exploreID);
-                    } else if (botID % armyDivider == 2) {
-                        //System.out.println("TTTT");
-                        attack(rc, enemySpace.x, enemySpace.y);
-                        rc.setIndicatorString("Attack enemy space at X: " +
-                                enemySpace.x + " Y: " + enemySpace.y);
+                    else if (rc.getRoundNum() > 1200 && rc.getRoundNum() < 1500 ||
+                            rc.getRoundNum() > 1800 && rc.getRoundNum() < 2000) {
+                        if (botID % armyDivider >= 3) {
+                            rc.setIndicatorString("Attack explore");
+                            attack(rc, exploreID);
+                        } else if (botID % armyDivider == 2) {
+                            //System.out.println("TTTT");
+                            attack(rc, enemySpace.x, enemySpace.y);
+                            rc.setIndicatorString("Attack enemy space at X: " +
+                                    enemySpace.x + " Y: " + enemySpace.y);
+                        } else {
+                            if (rc.getRoundNum() > 120 + (rc.getMapHeight() + rc.getMapHeight()) / 2) {
+                                if (botID % armyDivider >= 1) {
+                                    rc.setIndicatorString("Attack center");
+                                    goToPosition(rc, rc.getMapWidth() / 2, rc.getMapHeight() / 2);
+                                } else {
+                                    rc.setIndicatorString("Protecting Home");
+                                    protectHomeFlg = true;
+                                    toAttackFollowCooldown--;
+                                    if (toAttackFollowCooldown > 0) {
+                                        moveTowards(rc, toAttack);
+                                    } else {
+                                        attack(rc, spawnX, spawnY, 6);
+                                    }
+                                }
+                            } else {
+                                //rc.setIndicatorString("Attack center");
+                                goToPosition(rc, rc.getMapWidth() / 2, rc.getMapHeight() / 2);
+                            }
+
+                        }
+
                     } else {
                         if (rc.getRoundNum() > 120 + (rc.getMapHeight() + rc.getMapHeight()) / 2) {
                             if (botID % armyDivider >= 1) {
-                                rc.setIndicatorString("Attack center");
+                                //rc.setIndicatorString("Attack center");
                                 goToPosition(rc, rc.getMapWidth() / 2, rc.getMapHeight() / 2);
                             } else {
                                 rc.setIndicatorString("Protecting Home");
@@ -308,35 +334,14 @@ public class Launcher {
                         } else {
                             //rc.setIndicatorString("Attack center");
                             goToPosition(rc, rc.getMapWidth() / 2, rc.getMapHeight() / 2);
-                        }
 
+                        }
                     }
 
-                } else {
-                    if (rc.getRoundNum() > 120 + (rc.getMapHeight() + rc.getMapHeight()) / 2) {
-                        if (botID % armyDivider >= 1) {
-                            //rc.setIndicatorString("Attack center");
-                            goToPosition(rc, rc.getMapWidth() / 2, rc.getMapHeight() / 2);
-                        } else {
-                            rc.setIndicatorString("Protecting Home");
-                            protectHomeFlg = true;
-                            toAttackFollowCooldown--;
-                            if (toAttackFollowCooldown > 0) {
-                                moveTowards(rc, toAttack);
-                            } else {
-                                attack(rc, spawnX, spawnY, 6);
-                            }
-                        }
-                    } else {
-                        //rc.setIndicatorString("Attack center");
-                        goToPosition(rc, rc.getMapWidth() / 2, rc.getMapHeight() / 2);
+                    //returnToHomeBase(rc, hqLocations.get(0).x, hqLocations.get(0).y);
 
-                    }
+                    //}
                 }
-
-                //returnToHomeBase(rc, hqLocations.get(0).x, hqLocations.get(0).y);
-
-                //}
             } catch (GameActionException e) {
                 System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();

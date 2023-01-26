@@ -26,7 +26,7 @@ class Communication {
 
     // Maybe you want to change this based on exact amounts which you can get on turn 1
     static final int STARTING_ISLAND_IDX = GameConstants.MAX_STARTING_HEADQUARTERS;
-    static final int STARTING_WELL_IDX = GameConstants.MAX_NUMBER_ISLANDS + GameConstants.MAX_STARTING_HEADQUARTERS;
+    static final int STARTING_WELL_IDX = GameConstants.MIN_NUMBER_ISLANDS + GameConstants.MAX_STARTING_HEADQUARTERS;
     private static final int MAX_WELLS_IN_ARRAY = 15;
     private static final int STARTING_ENEMY_IDX = STARTING_WELL_IDX + MAX_WELLS_IN_ARRAY;
 
@@ -122,12 +122,17 @@ class Communication {
         }
         // Remember reading is cheaper than writing so we don't want to write without knowing if it's helpful
         int idx = id + STARTING_ISLAND_IDX;
-        int oldIslandValue = rc.readSharedArray(idx);
-        int updatedIslandValue = bitPackIslandInfo(rc, idx, closestIslandLoc);
-        if (oldIslandValue != updatedIslandValue) {
-            Message msg = new Message(idx, updatedIslandValue, turnCount);
-            messagesQueue.add(msg);
+        //ToDo: Fix You can't access this index as it is not within the shared array.
+        try{
+            int oldIslandValue = rc.readSharedArray(idx);
+            int updatedIslandValue = bitPackIslandInfo(rc, idx, closestIslandLoc);
+            if (oldIslandValue != updatedIslandValue) {
+                Message msg = new Message(idx, updatedIslandValue, turnCount);
+                messagesQueue.add(msg);
+            }
         }
+        catch (Exception ignore){}
+
     }
 
     static int bitPackIslandInfo(RobotController rc, int islandId, MapLocation closestLoc) {
@@ -203,13 +208,14 @@ class Communication {
         writeToSharedArray += well.getWellStatus() << WELL_DEFENSE_BITS;
         writeToSharedArray += well.getDefenseStatus();
         //System.out.println("Added Well with Location:" + well.getOwnLocation() + " and status: " + well.getWellStatus() + " and defense: " + well.getDefenseStatus());
-        if (status != 1) {
-            messagesQueue.add(new Message(index, writeToSharedArray, turnCount));
-        } else {
-            messagesQueue.add(new Message(well.getIndex(), writeToSharedArray, turnCount));
+            if (status != 1) {
+                messagesQueue.add(new Message(index, writeToSharedArray, turnCount));
+            } else {
+                messagesQueue.add(new Message(well.getIndex(), writeToSharedArray, turnCount));
+            }
+            tryWriteMessages(rc);
         }
-        tryWriteMessages(rc);
-    }
+
 
     static void updateWell(RobotController rc, WellEntity well) throws GameActionException {
         int writeToSharedArray = locationToInt(rc, well.getOwnLocation()) << WELL_STATUS_BITS + WELL_DEFENSE_BITS;
